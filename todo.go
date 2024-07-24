@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 )
 
 type ToDo struct {
@@ -17,7 +18,7 @@ func printTodosFormatted(todos ...ToDo) {
 	}
 }
 
-func printTodosJson(todos ...ToDo) {
+func printTodosJson(filename string, todos ...ToDo) {
 	jsonStr, err := json.MarshalIndent(todos, "", "\t")
 
 	if err != nil {
@@ -26,7 +27,23 @@ func printTodosJson(todos ...ToDo) {
 
 	//fmt.Printf("%+v\n", string(jsonStr))
 
-	ioutil.WriteFile("config.json", jsonStr, 0644)
+	ioutil.WriteFile(filename, jsonStr, 0644)
+}
+
+func readTasksFromJson(filename string) {
+	content, err := ioutil.ReadFile(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+	var tasks []ToDo
+	err = json.Unmarshal(content, &tasks)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for i, todo := range tasks {
+		fmt.Printf("[%d] %20s %t \n", i+1, todo.Description, todo.Done)
+	}
 }
 
 func main() {
@@ -34,5 +51,7 @@ func main() {
 	task1 := ToDo{"do laundry", false}
 
 	//printTodosFormatted(task, task1)
-	printTodosJson(task, task1)
+	printTodosJson("tasks.json", task, task1)
+
+	readTasksFromJson("tasks.json")
 }
