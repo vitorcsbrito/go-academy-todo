@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 )
 
 type ToDo struct {
@@ -17,16 +18,21 @@ func printTodosFormatted(todos ...ToDo) {
 }
 
 func printTodosJson(todos ...ToDo) {
-	for _, todo := range todos {
-		jsonStr, _ := json.Marshal(todo)
-		fmt.Printf("%+v\n", string(jsonStr))
+	jsonStr, err := json.MarshalIndent(todos, "", "\t")
+
+	if err != nil {
+		fmt.Println(err)
 	}
+
+	//fmt.Printf("%+v\n", string(jsonStr))
+
+	ioutil.WriteFile("config.json", jsonStr, 0644)
 }
 
 func main() {
 	task := ToDo{"do dishes", false}
 	task1 := ToDo{"do laundry", false}
 
-	printTodosFormatted(task, task1)
+	//printTodosFormatted(task, task1)
 	printTodosJson(task, task1)
 }
