@@ -1,9 +1,11 @@
 [
 	{
+		"id": 0,
 		"description": "do dishes",
 		"done": false
 	},
 	{
+		"id": 1,
 		"description": "do laundry",
 		"done": false
 	}
