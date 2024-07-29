@@ -83,18 +83,18 @@ func main() {
 	readTasksFromJson(filename, tasks)
 
 	go updateTaskDescription(1, "one", ch)
-	_ = <-ch
+	<-ch
 
 	go updateTaskDescription(1, "two", ch)
-	_ = <-ch
+	<-ch
 
 	go updateTaskDescription(1, "three", ch)
-	_ = <-ch
+	<-ch
 
 	go updateTaskDescription(1, "four", ch)
-	_ = <-ch
+	<-ch
 
-	time.Sleep(1 * time.Second)
+	time.Sleep(50 * time.Millisecond)
 
 	updatedTask, _, _ := findTask(1)
 
