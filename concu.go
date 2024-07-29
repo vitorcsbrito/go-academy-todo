@@ -10,10 +10,19 @@ var coffeeOrder = []byte("               ")
 
 func main1() {
 
-	go writeText("Choca          ")
-	go writeText("Mocha with Milk")
-	go writeText("Banana Shake   ")
-	go writeText("Tea no sugar   ")
+	ch := make(chan []byte)
+
+	go writeText("Choca          ", ch)
+	_ = <-ch
+
+	go writeText("Mocha with Milk", ch)
+	_ = <-ch
+
+	go writeText("Banana Shake   ", ch)
+	_ = <-ch
+
+	go writeText("Tea no sugar   ", ch)
+	_ = <-ch
 
 	// What on earth will be in coffeeOrder now?
 	time.Sleep(1 * time.Second)
@@ -21,7 +30,7 @@ func main1() {
 	fmt.Println(string(coffeeOrder))
 }
 
-func writeText(newOrder string) {
+func writeText(newOrder string, ch chan []byte) {
 
 	// CRITICAL SECTION STARTS
 	orderAsBytes := []byte(newOrder)
@@ -29,5 +38,7 @@ func writeText(newOrder string) {
 		coffeeOrder[index] = b
 		time.Sleep(10 * time.Millisecond)
 	}
+
 	// CRITICAL SECTION ENDS
+	ch <- orderAsBytes
 }

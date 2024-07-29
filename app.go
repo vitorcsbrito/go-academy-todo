@@ -43,7 +43,7 @@ func readTasksFromJson(filename string, todos []ToDo) {
 	printTodosFormatted(tasks)
 }
 
-func updateTaskDescription(id int, description string) {
+func updateTaskDescription(id int, description string, ch chan []ToDo) {
 	task, i, err := findTask(id)
 
 	if err != nil {
@@ -54,6 +54,8 @@ func updateTaskDescription(id int, description string) {
 
 	task.Description = description
 	tasks[i] = task
+
+	ch <- []ToDo{task}
 }
 
 func findTask(id int) (ToDo, int, error) {
@@ -75,13 +77,22 @@ func main() {
 
 	filename := "tasks.json"
 
+	ch := make(chan []ToDo)
+
 	writeTasksToJsonFile(filename, tasks...)
 	readTasksFromJson(filename, tasks)
 
-	go updateTaskDescription(1, "one")
-	go updateTaskDescription(1, "two")
-	go updateTaskDescription(1, "three")
-	go updateTaskDescription(1, "four")
+	go updateTaskDescription(1, "one", ch)
+	_ = <-ch
+
+	go updateTaskDescription(1, "two", ch)
+	_ = <-ch
+
+	go updateTaskDescription(1, "three", ch)
+	_ = <-ch
+
+	go updateTaskDescription(1, "four", ch)
+	_ = <-ch
 
 	time.Sleep(1 * time.Second)
 
