@@ -1,0 +1,22 @@
+### GET request to example server
+GET http://localhost:8080/tasks
+
+###
+POST http://localhost:8080/tasks
+Content-Type: application/json
+
+{
+    "description": "smt"
+}
+
+### Update Task
+PUT http://localhost:8080/tasks/2
+Content-Type: application/json
+
+{
+    "description": "smt new",
+    "done": true
+}
+
+###
+GET http://localhost:8080/tasks/3
