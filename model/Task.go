@@ -1,6 +1,6 @@
-package main
+package model
 
-type ToDo struct {
+type Task struct {
 	Id          int    `json:"id"`
 	Description string `json:"description"`
 	Done        bool   `json:"done"`
