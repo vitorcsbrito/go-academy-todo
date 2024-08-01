@@ -1,13 +1,11 @@
 package service
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
 	"go-todo-app/files"
 	. "go-todo-app/model"
 	. "go-todo-app/repository"
 	"net/http"
-	"sort"
 	"strconv"
 )
 
@@ -15,42 +13,34 @@ import (
 func CreateTask(c *gin.Context) {
 	var newTask Task
 
-	// Call BindJSON to bind the received JSON to
-	// newTask.
+	// Call BindJSON to bind the received JSON to newTask.
 	if err := c.BindJSON(&newTask); err != nil {
 		return
 	}
 
-	newTask.Id = findLatestId()
+	newTask.Id = FindLatestId()
 
 	Tasks = append(Tasks, newTask)
 	files.WriteTasksToJsonFile("tasks.json", Tasks...)
 	c.IndentedJSON(http.StatusCreated, newTask)
 }
 
-func findTask(id int) (Task, int, error) {
-
-	for i, todo := range Tasks {
-		if todo.Id == id {
-			return todo, i, nil
-		}
-	}
-	return Task{-1, "", false}, -1, errors.New("math: square root of negative number")
-}
-
 func UpdateTask(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+	_, i, err := FindById(id)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, err.Error())
+	}
+
 	var newValues Task
 	if err := c.BindJSON(&newValues); err != nil {
 		return
 	}
 
-	id, _ := strconv.Atoi(c.Param("id"))
-	_, i, _ := findTask(id)
-
 	Tasks[i].Description = newValues.Description
 	Tasks[i].Done = newValues.Done
 
-	//tasks = append(tasks, newValues)
 	files.WriteTasksToJsonFile("tasks.json", Tasks...)
 	c.IndentedJSON(http.StatusCreated, Tasks[i])
 }
@@ -58,36 +48,16 @@ func UpdateTask(c *gin.Context) {
 func DeleteTask(c *gin.Context) {
 
 	id, _ := strconv.Atoi(c.Param("id"))
-	_, i, _ := findTask(id)
+	_, i, err := FindById(id)
 
-	Tasks = remove(Tasks, i)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, err.Error())
+	}
 
-	//Tasks = append(Tasks, newValues)
+	Tasks = Delete(Tasks, i)
+
 	files.WriteTasksToJsonFile("Tasks.json", Tasks...)
-	c.IndentedJSON(http.StatusCreated, Tasks[i])
-}
-
-func remove(slice []Task, s int) []Task {
-	lastIndex := len(slice) - 1
-
-	if len(slice) > 0 && s == lastIndex {
-		slice = slice[:len(slice)-1]
-		return slice
-	} else {
-		return append(slice[:s], slice[s+1:]...)
-	}
-}
-
-func findLatestId() int {
-	if len(Tasks) == 0 {
-		return 0
-	}
-
-	sort.SliceStable(Tasks, func(i, j int) bool {
-		return Tasks[i].Id > Tasks[j].Id
-	})
-
-	return Tasks[0].Id + 1
+	c.IndentedJSON(http.StatusOK, "")
 }
 
 func GetTaskById(c *gin.Context) {

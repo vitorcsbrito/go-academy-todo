@@ -4,17 +4,16 @@ import (
 	"github.com/gin-gonic/gin"
 	"go-todo-app/files"
 	. "go-todo-app/model"
+	. "go-todo-app/repository"
 	"go-todo-app/service"
 	"net/http"
 	"sort"
 )
 
-var tasks []Task
-
 func main() {
 	filename := "tasks.json"
 
-	files.ReadTasksFromJson(filename, &tasks)
+	files.ReadTasksFromJson(filename, &Tasks)
 
 	router := gin.Default()
 
@@ -35,9 +34,9 @@ func main() {
 }
 
 func getSortedTasks() []Task {
-	sort.SliceStable(tasks, func(i, j int) bool {
-		return tasks[i].Id < tasks[j].Id
+	sort.SliceStable(Tasks, func(i, j int) bool {
+		return Tasks[i].Id < Tasks[j].Id
 	})
 
-	return tasks
+	return Tasks
 }
