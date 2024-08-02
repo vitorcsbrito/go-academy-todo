@@ -3,13 +3,14 @@ package files
 import (
 	"encoding/json"
 	"fmt"
+	"go-todo-app/repository"
 	"log"
 	"os"
 )
 import . "go-todo-app/model"
 
-func WriteTasksToJsonFile(filename string, todos ...Task) {
-	jsonStr, err := json.MarshalIndent(todos, "", "\t")
+func WriteTasksToJsonFile(filename string) {
+	jsonStr, err := json.MarshalIndent(repository.GetInstance().Tasks, "", "\t")
 
 	if err != nil {
 		fmt.Println(err)
@@ -23,7 +24,7 @@ func WriteTasksToJsonFile(filename string, todos ...Task) {
 	writeFile(filename, string(jsonStr))
 }
 
-func ReadTasksFromJson(filename string, todos *[]Task) {
+func ReadTasksFromJson(filename string) {
 	var tasks []Task
 	var content = readJsonFile(filename)
 
@@ -32,9 +33,7 @@ func ReadTasksFromJson(filename string, todos *[]Task) {
 		log.Fatal(err)
 	}
 
-	*todos = append(*todos, tasks...)
-
-	//printTodosFormatted(tasks)
+	repository.GetInstance().Tasks = append(repository.GetInstance().Tasks, tasks...)
 }
 
 func checkFileExists(filename string) bool {

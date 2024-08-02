@@ -6,6 +6,7 @@ import (
 	. "go-todo-app/model"
 	. "go-todo-app/repository"
 	"net/http"
+	"sort"
 	"strconv"
 )
 
@@ -20,8 +21,8 @@ func CreateTask(c *gin.Context) {
 
 	newTask.Id = FindLatestId()
 
-	Tasks = append(Tasks, newTask)
-	files.WriteTasksToJsonFile("tasks.json", Tasks...)
+	GetInstance().Tasks = append(GetInstance().Tasks, newTask)
+	files.WriteTasksToJsonFile("tasks.json")
 	c.IndentedJSON(http.StatusCreated, newTask)
 }
 
@@ -38,11 +39,11 @@ func UpdateTask(c *gin.Context) {
 		return
 	}
 
-	Tasks[i].Description = newValues.Description
-	Tasks[i].Done = newValues.Done
+	GetInstance().Tasks[i].Description = newValues.Description
+	GetInstance().Tasks[i].Done = newValues.Done
 
-	files.WriteTasksToJsonFile("tasks.json", Tasks...)
-	c.IndentedJSON(http.StatusCreated, Tasks[i])
+	files.WriteTasksToJsonFile("tasks.json")
+	c.IndentedJSON(http.StatusCreated, GetInstance().Tasks[i])
 }
 
 func DeleteTask(c *gin.Context) {
@@ -54,9 +55,9 @@ func DeleteTask(c *gin.Context) {
 		c.IndentedJSON(http.StatusNotFound, err.Error())
 	}
 
-	Tasks = Delete(Tasks, i)
+	GetInstance().Tasks = Delete(i)
 
-	files.WriteTasksToJsonFile("Tasks.json", Tasks...)
+	files.WriteTasksToJsonFile("Tasks.json")
 	c.IndentedJSON(http.StatusOK, "")
 }
 
@@ -64,11 +65,19 @@ func GetTaskById(c *gin.Context) {
 	id := c.Param("id")
 	i, _ := strconv.Atoi(id)
 
-	for _, a := range Tasks {
+	for _, a := range GetInstance().Tasks {
 		if a.Id == i {
 			c.IndentedJSON(http.StatusOK, a)
 			return
 		}
 	}
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "task not found"})
+}
+
+func GetSortedTasks() []Task {
+	sort.SliceStable(GetInstance().Tasks, func(i, j int) bool {
+		return GetInstance().Tasks[i].Id < GetInstance().Tasks[j].Id
+	})
+
+	return GetInstance().Tasks
 }
