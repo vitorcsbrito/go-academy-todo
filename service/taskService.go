@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/gin-gonic/gin"
-	"go-todo-app/files"
 	. "go-todo-app/model"
 	. "go-todo-app/repository"
 	"net/http"
@@ -10,74 +9,73 @@ import (
 	"strconv"
 )
 
-// CreateTask adds an album from JSON received in the request body.
-func CreateTask(c *gin.Context) {
+type TaskService struct {
+	repo InterfaceRepository
+}
+
+func NewTaskService(repo InterfaceRepository) *TaskService {
+	return &TaskService{repo}
+}
+
+func (service *TaskService) CreateTask(c *gin.Context) {
 	var newTask Task
 
-	// Call BindJSON to bind the received JSON to newTask.
 	if err := c.BindJSON(&newTask); err != nil {
+		c.IndentedJSON(http.StatusBadRequest, err)
 		return
 	}
 
-	newTask.Id = FindLatestId()
-
-	GetInstance().Tasks = append(GetInstance().Tasks, newTask)
-	files.WriteTasksToJsonFile("tasks.json")
+	service.repo.Save(newTask)
 	c.IndentedJSON(http.StatusCreated, newTask)
 }
 
-func UpdateTask(c *gin.Context) {
+func (service *TaskService) UpdateTask(c *gin.Context) {
 	id, _ := strconv.Atoi(c.Param("id"))
-	_, i, err := FindById(id)
-
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, err.Error())
-	}
 
 	var newValues Task
 	if err := c.BindJSON(&newValues); err != nil {
 		return
 	}
 
-	GetInstance().Tasks[i].Description = newValues.Description
-	GetInstance().Tasks[i].Done = newValues.Done
-
-	files.WriteTasksToJsonFile("tasks.json")
-	c.IndentedJSON(http.StatusCreated, GetInstance().Tasks[i])
-}
-
-func DeleteTask(c *gin.Context) {
-
-	id, _ := strconv.Atoi(c.Param("id"))
-	_, i, err := FindById(id)
+	i, err := service.repo.Update(id, newValues)
 
 	if err != nil {
 		c.IndentedJSON(http.StatusNotFound, err.Error())
 	}
 
-	GetInstance().Tasks = Delete(i)
+	task, _, _ := service.repo.FindById(i)
+	c.IndentedJSON(http.StatusCreated, task)
+}
 
-	files.WriteTasksToJsonFile("Tasks.json")
+func (service *TaskService) DeleteTask(c *gin.Context) {
+	id, _ := strconv.Atoi(c.Param("id"))
+
+	err := service.repo.Delete(id)
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, err.Error())
+	}
+
 	c.IndentedJSON(http.StatusOK, "")
 }
 
-func GetTaskById(c *gin.Context) {
-	id := c.Param("id")
-	i, _ := strconv.Atoi(id)
+func (service *TaskService) GetTaskById(c *gin.Context) {
+	i, _ := strconv.Atoi(c.Param("id"))
 
-	for _, a := range GetInstance().Tasks {
-		if a.Id == i {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
+	t, _, err := service.repo.FindById(i)
+
+	if err != nil {
+		c.IndentedJSON(http.StatusNotFound, err.Error())
 	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "task not found"})
+
+	c.IndentedJSON(http.StatusOK, t)
+
 }
 
-func GetSortedTasks() []Task {
-	sort.SliceStable(GetInstance().Tasks, func(i, j int) bool {
-		return GetInstance().Tasks[i].Id < GetInstance().Tasks[j].Id
+func (service *TaskService) GetSortedTasks() []Task {
+	tasks := service.repo.FindAll()
+	sort.SliceStable(tasks, func(i, j int) bool {
+		return tasks[i].Id < tasks[j].Id
 	})
 
-	return GetInstance().Tasks
+	return tasks
 }

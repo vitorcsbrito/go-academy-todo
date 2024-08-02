@@ -1,26 +1,23 @@
-### GET request to example server
-GET http://localhost:8080/tasks
-
-###
+### Create New Task
 POST http://localhost:8080/tasks
 Content-Type: application/json
 
 {
-    "description": "smt"
+    "description": "{{$isoTimestamp}}"
 }
 
 ### Update Task
-PUT http://localhost:8080/tasks/0
+PUT http://localhost:8080/tasks/5
 Content-Type: application/json
 
 {
-    "description": "smt new",
-    "done": true
+    "description": "smt new 1 updatyed",
+    "done": false
 }
 
 ###
-GET http://localhost:8080/tasks/0
+GET http://localhost:8080/tasks/2
 
 
 ###
-DELETE http://localhost:8080/tasks/0
+DELETE http://localhost:8080/tasks/3

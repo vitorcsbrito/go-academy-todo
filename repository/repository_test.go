@@ -6,14 +6,12 @@ import (
 	"testing"
 )
 
-var tasks []Task
-
 func TestRemoveLastElement(t *testing.T) {
-	tasks := append(tasks,
+	GetInstance().tasks = append(GetInstance().tasks,
 		Task{Id: 0, Description: "do dishes"},
 		Task{Id: 1, Description: "do laundry"})
 
-	tmp := Delete(tasks, 1)
+	tmp := Delete(1)
 
 	if len(tmp) != 1 {
 		t.Helper()
@@ -22,9 +20,15 @@ func TestRemoveLastElement(t *testing.T) {
 }
 
 func TestFindById(t *testing.T) {
+
+	GetInstance().tasks = append(GetInstance().tasks,
+		Task{Id: 0, Description: "do dishes"},
+		Task{Id: 1, Description: "do laundry"})
+
 	type args struct {
 		index int
 	}
+
 	tests := []struct {
 		name      string
 		args      args
@@ -32,20 +36,22 @@ func TestFindById(t *testing.T) {
 		wantIndex int
 		wantErr   bool
 	}{
-		{name: "smt", args: args{0}, wantTask: Task{Id: 0, Description: "123"}, wantIndex: 0, wantErr: false},
+		{name: "Finds existing task", args: args{0}, wantTask: Task{Id: 0, Description: "do dishes"}, wantIndex: 0, wantErr: false},
+		{name: "Finds existing task", args: args{1}, wantTask: Task{Id: 1, Description: "do laundry"}, wantIndex: 1, wantErr: false},
+		{name: "Throws error with unknown task", args: args{2}, wantTask: Task{Id: -1, Description: ""}, wantIndex: -1, wantErr: true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, got1, err := FindById(tt.args.index)
+			gotTask, gotIndex, err := FindById(tt.args.index)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("FindById() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(got, tt.wantTask) {
-				t.Errorf("FindById() got = %v, wantTask %v", got, tt.wantTask)
+			if !reflect.DeepEqual(gotTask, tt.wantTask) {
+				t.Errorf("FindById() gotTask = %v, wantTask %v", gotTask, tt.wantTask)
 			}
-			if got1 != tt.wantIndex {
-				t.Errorf("FindById() got1 = %v, wantTask %v", got1, tt.wantIndex)
+			if gotIndex != tt.wantIndex {
+				t.Errorf("FindById() gotIndex = %v, wantTask %v", gotIndex, tt.wantIndex)
 			}
 		})
 	}

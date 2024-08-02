@@ -1,8 +1,9 @@
 package repository
 
 import (
-	"errors"
 	"fmt"
+	. "go-todo-app/errors"
+	"go-todo-app/files"
 	. "go-todo-app/model"
 	"sort"
 	"sync"
@@ -10,57 +11,122 @@ import (
 
 var lock = &sync.Mutex{}
 
-type Single struct {
-	Tasks []Task
+type Repository struct {
+	tasks *[]Task
 }
 
-var singleInstance *Single
+func NewRepository() *Repository {
+	s := GetInstance()
+	s.init()
+	return s
+}
 
-func GetInstance() *Single {
+type InterfaceRepository interface {
+	Save(task Task) int
+	Update(id int, task Task) (int, error)
+	FindById(id int) (*Task, int, error)
+	Delete(taskId int) error
+	FindAll() []Task
+}
+
+var singleInstance *Repository
+
+func GetInstance() *Repository {
 	if singleInstance == nil {
 		lock.Lock()
 		defer lock.Unlock()
 		if singleInstance == nil {
 			fmt.Println("Creating single instance now.")
-			singleInstance = &Single{}
+			singleInstance = &Repository{}
+			singleInstance.init()
 		} else {
-			fmt.Println("Single instance already created.")
+			fmt.Println("Repository instance already created.")
 		}
 	} else {
-		fmt.Println("Single instance already created.")
+		fmt.Println("Repository instance already created.")
 	}
 
 	return singleInstance
 }
 
-func FindById(id int) (Task, int, error) {
-	for i, todo := range GetInstance().Tasks {
+func (s Repository) init() {
+	filename := "tasks.json"
+	tasksFromJson := files.ReadTasksFromJson(filename)
+
+	GetInstance().tasks = &tasksFromJson
+}
+
+func (s Repository) Save(task Task) int {
+	task.Id = s.findLatestId()
+
+	*s.tasks = append(*s.tasks, task)
+	files.WriteTasksToJsonFile("tasks.json", *s.tasks)
+
+	return task.Id
+}
+
+func (s Repository) Update(id int, task Task) (int, error) {
+	t, i, err := s.FindById(id)
+
+	if err != nil {
+		return i, err
+	}
+
+	t.Description = task.Description
+	t.Done = task.Done
+
+	(*s.tasks)[i] = *t
+
+	files.WriteTasksToJsonFile("tasks.json", *s.tasks)
+
+	return i, nil
+}
+
+func (s Repository) FindById(id int) (*Task, int, error) {
+	for i, todo := range *s.tasks {
 		if todo.Id == id {
-			return todo, i, nil
+			return &todo, i, nil
 		}
 	}
-	return Task{Id: -1}, -1, errors.New("task not found")
+
+	return &Task{Id: -1}, -1, NewErrTaskNotFound(id)
 }
 
-func Delete(s int) []Task {
-	lastIndex := len(GetInstance().Tasks) - 1
+func (s Repository) FindAll() []Task {
+	return *s.tasks
+}
 
-	if len(GetInstance().Tasks) > 0 && s == lastIndex {
-		GetInstance().Tasks = GetInstance().Tasks[:len(GetInstance().Tasks)-1]
-		return GetInstance().Tasks
-	} else {
-		return append(GetInstance().Tasks[:s], GetInstance().Tasks[s+1:]...)
+func (s Repository) Delete(taskId int) error {
+	_, i, err := s.FindById(taskId)
+
+	if err != nil {
+		return err
 	}
+
+	tasks := *s.tasks
+	lastIndex := len(tasks) - 1
+
+	if len(tasks) > 0 && i == lastIndex {
+		tasks = tasks[:len(tasks)-1]
+	} else {
+		tasks = append(tasks[:i], tasks[i+1:]...)
+	}
+
+	*s.tasks = tasks
+
+	return nil
 }
 
-func FindLatestId() int {
-	if len(GetInstance().Tasks) == 0 {
+func (s Repository) findLatestId() int {
+	tasks := *s.tasks
+
+	if len(tasks) == 0 {
 		return 0
 	}
 
-	sort.SliceStable(GetInstance().Tasks, func(i, j int) bool {
-		return GetInstance().Tasks[i].Id > GetInstance().Tasks[j].Id
+	sort.SliceStable(tasks, func(i, j int) bool {
+		return tasks[i].Id > tasks[j].Id
 	})
 
-	return GetInstance().Tasks[0].Id + 1
+	return tasks[0].Id + 1
 }
