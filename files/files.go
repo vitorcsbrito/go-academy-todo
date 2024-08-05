@@ -24,6 +24,12 @@ func WriteTasksToJsonFile(filename string, tasks []Task) {
 }
 
 func ReadTasksFromJson(filename string) []Task {
+
+	if !checkFileExists(filename) {
+		createFile(filename)
+		writeFile(filename, "[]")
+	}
+
 	var tasks []Task
 	var content = readJsonFile(filename)
 

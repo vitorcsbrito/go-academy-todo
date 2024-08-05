@@ -1,22 +1,7 @@
 [
 	{
-		"id": 5,
-		"description": "test",
-		"done": false
-	},
-	{
-		"id": 1,
-		"description": "4562",
-		"done": true
-	},
-	{
 		"id": 0,
-		"description": "new task",
-		"done": false
-	},
-	{
-		"id": 6,
-		"description": "newo nr",
+		"description": "23",
 		"done": false
 	}
 ]

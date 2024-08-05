@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	taskRepository := repository.NewRepository()
+	taskRepository := repository.GetInstance("tasks.json")
 	taskService := service.NewTaskService(taskRepository)
 
 	router := gin.Default()

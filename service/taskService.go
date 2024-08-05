@@ -73,8 +73,9 @@ func (service *TaskService) GetTaskById(c *gin.Context) {
 
 func (service *TaskService) GetSortedTasks() []Task {
 	tasks := service.repo.FindAll()
+
 	sort.SliceStable(tasks, func(i, j int) bool {
-		return tasks[i].Id < tasks[j].Id
+		return (tasks)[i].Id < (tasks)[j].Id
 	})
 
 	return tasks

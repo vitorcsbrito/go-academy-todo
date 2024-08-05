@@ -12,13 +12,8 @@ import (
 var lock = &sync.Mutex{}
 
 type Repository struct {
-	tasks *[]Task
-}
-
-func NewRepository() *Repository {
-	s := GetInstance()
-	s.init()
-	return s
+	tasks    *[]Task
+	filename string
 }
 
 type InterfaceRepository interface {
@@ -31,36 +26,34 @@ type InterfaceRepository interface {
 
 var singleInstance *Repository
 
-func GetInstance() *Repository {
+func GetInstance(filename string) *Repository {
 	if singleInstance == nil {
 		lock.Lock()
 		defer lock.Unlock()
 		if singleInstance == nil {
 			fmt.Println("Creating single instance now.")
-			singleInstance = &Repository{}
+			singleInstance = &Repository{
+				filename: filename,
+			}
 			singleInstance.init()
-		} else {
-			fmt.Println("Repository instance already created.")
 		}
-	} else {
-		fmt.Println("Repository instance already created.")
 	}
+	fmt.Println("Repository instance already created.")
 
 	return singleInstance
 }
 
 func (s Repository) init() {
-	filename := "tasks.json"
-	tasksFromJson := files.ReadTasksFromJson(filename)
+	tasksFromJson := files.ReadTasksFromJson(s.filename)
 
-	GetInstance().tasks = &tasksFromJson
+	GetInstance(s.filename).tasks = &tasksFromJson
 }
 
 func (s Repository) Save(task Task) int {
 	task.Id = s.findLatestId()
 
 	*s.tasks = append(*s.tasks, task)
-	files.WriteTasksToJsonFile("tasks.json", *s.tasks)
+	files.WriteTasksToJsonFile(s.filename, *s.tasks)
 
 	return task.Id
 }
@@ -77,7 +70,7 @@ func (s Repository) Update(id int, task Task) (int, error) {
 
 	(*s.tasks)[i] = *t
 
-	files.WriteTasksToJsonFile("tasks.json", *s.tasks)
+	files.WriteTasksToJsonFile("tasks_1.json", *s.tasks)
 
 	return i, nil
 }
