@@ -58,7 +58,7 @@ func (s Repository) Save(task Task) int {
 	return task.Id
 }
 
-func (s Repository) Update(id int, task Task) (int, error) {
+func (s Repository) Update(id int, task Task) (i int, err error) {
 	t, i, err := s.FindById(id)
 
 	if err != nil {
@@ -70,7 +70,7 @@ func (s Repository) Update(id int, task Task) (int, error) {
 
 	(*s.tasks)[i] = *t
 
-	files.WriteTasksToJsonFile("tasks_1.json", *s.tasks)
+	files.WriteTasksToJsonFile(s.filename, *s.tasks)
 
 	return i, nil
 }
@@ -106,6 +106,7 @@ func (s Repository) Delete(taskId int) error {
 	}
 
 	*s.tasks = tasks
+	files.WriteTasksToJsonFile(s.filename, *s.tasks)
 
 	return nil
 }

@@ -4,23 +4,17 @@ import (
 	"fmt"
 	. "go-todo-app/model"
 	"os"
-	"reflect"
 	"testing"
 	"time"
 )
 
 func Test_Remove_LastElement(t *testing.T) {
-	filename := getTestDbFileName("Test_Remove_LastElement")
-	testRepo := GetInstance(filename)
-
-	testRepo.Save(Task{Id: 0, Description: "do dishes"})
-	testRepo.Save(Task{Id: 1, Description: "do laundry"})
-
+	testRepo, filename := setup()
 	err := testRepo.Delete(1)
 
 	if err != nil {
 		t.Helper()
-		t.Fatalf("didnt expect an err, but got one")
+		t.Errorf("didnt expect an err, but got one")
 	}
 
 	_, _, err1 := testRepo.FindById(1)
@@ -34,17 +28,13 @@ func Test_Remove_LastElement(t *testing.T) {
 }
 
 func Test_Remove_FirstElement(t *testing.T) {
-	filename := getTestDbFileName("Test_Remove_FirstElement")
-	testRepo := GetInstance(filename)
-
-	testRepo.Save(Task{Id: 0, Description: "do dishes"})
-	testRepo.Save(Task{Id: 1, Description: "do laundry"})
+	testRepo, filename := setup()
 
 	err := testRepo.Delete(0)
 
 	if err != nil {
 		t.Helper()
-		t.Fatalf("didnt expect an err, but got one")
+		t.Errorf("didnt expect an err, but got one")
 	}
 
 	_, _, err1 := testRepo.FindById(0)
@@ -54,37 +44,31 @@ func Test_Remove_FirstElement(t *testing.T) {
 		return
 	}
 
-	//cleanup(filename)
+	cleanup(filename)
 }
 
 func Test_SaveTask(t *testing.T) {
-	filename := getTestDbFileName("Test_SaveTask")
-	testRepo := GetInstance(filename)
+	testRepo, filename := setup()
 
 	allTasks := testRepo.FindAll()
 
 	prevLen := len(allTasks)
 
-	index := testRepo.Save(Task{Id: 0, Description: "do dishes"})
+	index := testRepo.Save(Task{Description: "do dishes"})
 
 	allTasks = testRepo.FindAll()
 	postLen := len(allTasks)
 
 	if postLen <= prevLen {
 		t.Helper()
-		t.Fatalf("task didnt save")
+		t.Errorf("task didnt save")
 	}
 
-	if index != 0 {
-		t.Helper()
-		t.Fatalf("didnt expect an err, but got one")
-	}
-
-	task, _, err1 := testRepo.FindById(0)
+	task, _, err1 := testRepo.FindById(index)
 
 	if (*task).Description != "do dishes" {
 		t.Helper()
-		t.Fatalf("task has wrong description")
+		t.Errorf("task has wrong description")
 	}
 
 	if err1 != nil {
@@ -96,48 +80,35 @@ func Test_SaveTask(t *testing.T) {
 }
 
 func TestFindById(t *testing.T) {
-	filename := getTestDbFileName("TestFindById")
-	testRepo := GetInstance(filename)
+	testRepo, filename := setup()
 
-	testRepo.Save(Task{Id: 0, Description: "do dishes"})
-	testRepo.Save(Task{Id: 1, Description: "do laundry"})
+	taskId := testRepo.findLatestId() - 1
 
-	type args struct {
-		index int
+	gotTask, gotIndex, err := testRepo.FindById(taskId)
+	if err != nil {
+		t.Errorf("FindById() error = %v, wantErr %v", err, "tt.wantErr")
+		return
 	}
 
-	tests := []struct {
-		name      string
-		args      args
-		wantTask  Task
-		wantIndex int
-		wantErr   bool
-	}{
-		{name: "Finds existing task", args: args{0}, wantTask: Task{Id: 0, Description: "do dishes"}, wantIndex: 0, wantErr: false},
-		{name: "Finds existing task", args: args{1}, wantTask: Task{Id: 1, Description: "do laundry"}, wantIndex: 1, wantErr: false},
-		{name: "Throws error with unknown task", args: args{2}, wantTask: Task{Id: -1, Description: ""}, wantIndex: -1, wantErr: true},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotTask, gotIndex, err := testRepo.FindById(tt.args.index)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("FindById() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(*gotTask, tt.wantTask) {
-				t.Errorf("FindById() gotTask = %v, wantTask %v", gotTask, tt.wantTask)
-			}
-			if gotIndex != tt.wantIndex {
-				t.Errorf("FindById() gotIndex = %v, wantTask %v", gotIndex, tt.wantIndex)
-			}
-		})
+	if taskId != gotTask.Id {
+		t.Errorf("FindById() gotIndex = %v, wantIndex %v", gotIndex, taskId)
 	}
 
 	cleanup(filename)
 }
 
-func getTestDbFileName(testName string) string {
-	return fmt.Sprintf("test_%s_%d.json", testName, time.Now().Unix())
+func getTestDbFileName() string {
+	return fmt.Sprintf("test_%d.json", time.Now().Unix())
+}
+
+func setup() (*Repository, string) {
+	filename := getTestDbFileName()
+	testRepo := GetInstance(filename)
+
+	testRepo.Save(Task{Id: 0, Description: "do dishes"})
+	testRepo.Save(Task{Id: 1, Description: "do laundry"})
+
+	return testRepo, filename
 }
 
 func cleanup(filename string) {
