@@ -1,15 +1,13 @@
 package repository
 
 import (
-	"fmt"
 	. "go-todo-app/model"
-	"os"
+	. "go-todo-app/testutils"
 	"testing"
-	"time"
 )
 
 func Test_Remove_LastElement(t *testing.T) {
-	testRepo, filename := setup()
+	testRepo, filename := SetupTaskRepository()
 	err := testRepo.Delete(1)
 
 	if err != nil {
@@ -24,11 +22,11 @@ func Test_Remove_LastElement(t *testing.T) {
 		return
 	}
 
-	cleanup(filename)
+	Cleanup(filename)
 }
 
 func Test_Remove_FirstElement(t *testing.T) {
-	testRepo, filename := setup()
+	testRepo, filename := SetupTaskRepository()
 
 	err := testRepo.Delete(0)
 
@@ -44,11 +42,11 @@ func Test_Remove_FirstElement(t *testing.T) {
 		return
 	}
 
-	cleanup(filename)
+	Cleanup(filename)
 }
 
 func Test_SaveTask(t *testing.T) {
-	testRepo, filename := setup()
+	testRepo, filename := SetupTaskRepository()
 
 	allTasks := testRepo.FindAll()
 
@@ -76,11 +74,11 @@ func Test_SaveTask(t *testing.T) {
 		return
 	}
 
-	cleanup(filename)
+	Cleanup(filename)
 }
 
 func TestFindById(t *testing.T) {
-	testRepo, filename := setup()
+	testRepo, filename := SetupTaskRepository()
 
 	taskId := testRepo.findLatestId() - 1
 
@@ -94,27 +92,5 @@ func TestFindById(t *testing.T) {
 		t.Errorf("FindById() gotIndex = %v, wantIndex %v", gotIndex, taskId)
 	}
 
-	cleanup(filename)
-}
-
-func getTestDbFileName() string {
-	return fmt.Sprintf("test_%d.json", time.Now().Unix())
-}
-
-func setup() (*Repository, string) {
-	filename := getTestDbFileName()
-	testRepo := GetInstance(filename)
-
-	testRepo.Save(Task{Id: 0, Description: "do dishes"})
-	testRepo.Save(Task{Id: 1, Description: "do laundry"})
-
-	return testRepo, filename
-}
-
-func cleanup(filename string) {
-	err := os.Remove(filename)
-
-	if err != nil {
-		panic(err)
-	}
+	Cleanup(filename)
 }

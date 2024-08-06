@@ -100,6 +100,7 @@ func UpdateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 		}
 
 		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
 
 		var newTask Task
 		err1 := decoder.Decode(&task)
