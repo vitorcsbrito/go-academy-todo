@@ -1,10 +1,8 @@
 package service
 
 import (
-	"github.com/gin-gonic/gin"
 	. "go-todo-app/model"
 	. "go-todo-app/repository"
-	"net/http"
 	"sort"
 	"strconv"
 )
@@ -17,58 +15,31 @@ func NewTaskService(repo InterfaceRepository) *TaskService {
 	return &TaskService{repo}
 }
 
-func (service *TaskService) CreateTask(c *gin.Context) {
-	var newTask Task
-
-	if err := c.BindJSON(&newTask); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, err)
-		return
-	}
-
-	service.repo.Save(newTask)
-	c.IndentedJSON(http.StatusCreated, newTask)
+func (service *TaskService) CreateTask(task Task) {
+	service.repo.Save(task)
 }
 
-func (service *TaskService) UpdateTask(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+func (service *TaskService) UpdateTask(ix string, newValues Task) (task *Task, err error) {
+	id, _ := strconv.Atoi(ix)
 
-	var newValues Task
-	if err := c.BindJSON(&newValues); err != nil {
-		return
-	}
+	_, err = service.repo.Update(id, newValues)
 
-	i, err := service.repo.Update(id, newValues)
-
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, err.Error())
-	}
-
-	task, _, _ := service.repo.FindById(i)
-	c.IndentedJSON(http.StatusCreated, task)
+	task, _, _ = service.repo.FindById(id)
+	return
 }
 
-func (service *TaskService) DeleteTask(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+func (service *TaskService) DeleteTask(i string) (id int, err error) {
+	id, _ = strconv.Atoi(i)
 
-	err := service.repo.Delete(id)
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, err.Error())
-	}
-
-	c.IndentedJSON(http.StatusOK, "")
+	err = service.repo.Delete(id)
+	return
 }
 
-func (service *TaskService) GetTaskById(c *gin.Context) {
-	i, _ := strconv.Atoi(c.Param("id"))
+func (service *TaskService) GetTaskById(id string) (t *Task, err error) {
+	i, _ := strconv.Atoi(id)
+	t, _, err = service.repo.FindById(i)
 
-	t, _, err := service.repo.FindById(i)
-
-	if err != nil {
-		c.IndentedJSON(http.StatusNotFound, err.Error())
-	}
-
-	c.IndentedJSON(http.StatusOK, t)
-
+	return
 }
 
 func (service *TaskService) GetSortedTasks() []Task {

@@ -13,3 +13,7 @@ func (e TaskNotFound) Error() string {
 func NewErrTaskNotFound(id int) error {
 	return &TaskNotFound{id: id}
 }
+
+type ErrorResponse struct {
+	Message string `json:"message"`
+}

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"github.com/gin-gonic/gin"
+	. "go-todo-app/controller"
 	"go-todo-app/repository"
 	"go-todo-app/service"
+	"html/template"
 	"net/http"
 )
 
@@ -11,20 +12,30 @@ func main() {
 	taskRepository := repository.GetInstance("tasks.json")
 	taskService := service.NewTaskService(taskRepository)
 
-	router := gin.Default()
-	router.LoadHTMLGlob("templates/*")
+	tmpl := template.Must(template.ParseFiles("templates/tasks.tmpl"))
 
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "tasks.tmpl", taskService.GetSortedTasks())
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		data := taskService.GetSortedTasks()
+		tmpl.Execute(w, data)
 	})
 
-	router.GET("/tasks/:id", taskService.GetTaskById)
-	router.POST("/tasks", taskService.CreateTask)
-	router.PUT("/tasks/:id", taskService.UpdateTask)
-	router.DELETE("/tasks/:id", taskService.DeleteTask)
+	http.HandleFunc("/tasks/{id}", func(writer http.ResponseWriter, request *http.Request) {
+		switch request.Method {
+		case http.MethodGet:
+			GetTaskById(taskService)(writer, request)
+		case http.MethodDelete:
+			DeleteTask(taskService)(writer, request)
+		case http.MethodPut:
+			UpdateTask(taskService)(writer, request)
+		}
+	})
 
-	err := router.Run(":8080")
-	if err != nil {
-		return
-	}
+	http.HandleFunc("/tasks", func(writer http.ResponseWriter, request *http.Request) {
+		switch request.Method {
+		case http.MethodPost:
+			CreateTask(taskService)(writer, request)
+		}
+	})
+
+	http.ListenAndServe(":8080", nil)
 }
