@@ -30,6 +30,15 @@ func SetupTaskRepository() (*Repository, string) {
 	return testRepo, filename
 }
 
+func SetupMockRepository() *Repository {
+	taskArr := make([]Task, 0)
+	mockRepo := &Repository{
+		Tasks:    &taskArr,
+		Filename: "tmp",
+	}
+	return mockRepo
+}
+
 func Cleanup(filename string) {
 	err := os.Remove(filename)
 

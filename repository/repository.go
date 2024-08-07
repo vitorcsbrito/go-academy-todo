@@ -12,8 +12,8 @@ import (
 var lock = &sync.Mutex{}
 
 type Repository struct {
-	tasks    *[]Task
-	filename string
+	Tasks    *[]Task
+	Filename string
 }
 
 type InterfaceRepository interface {
@@ -33,7 +33,7 @@ func GetInstance(filename string) *Repository {
 		if singleInstance == nil {
 			fmt.Println("Creating single instance now.")
 			singleInstance = &Repository{
-				filename: filename,
+				Filename: filename,
 			}
 			singleInstance.init()
 		}
@@ -44,16 +44,16 @@ func GetInstance(filename string) *Repository {
 }
 
 func (s Repository) init() {
-	tasksFromJson := files.ReadTasksFromJson(s.filename)
+	tasksFromJson := files.ReadTasksFromJson(s.Filename)
 
-	GetInstance(s.filename).tasks = &tasksFromJson
+	GetInstance(s.Filename).Tasks = &tasksFromJson
 }
 
 func (s Repository) Save(task Task) int {
 	task.Id = s.findLatestId()
 
-	*s.tasks = append(*s.tasks, task)
-	files.WriteTasksToJsonFile(s.filename, *s.tasks)
+	*s.Tasks = append(*s.Tasks, task)
+	files.WriteTasksToJsonFile(s.Filename, *s.Tasks)
 
 	return task.Id
 }
@@ -68,15 +68,15 @@ func (s Repository) Update(id int, task Task) (i int, err error) {
 	t.Description = task.Description
 	t.Done = task.Done
 
-	(*s.tasks)[i] = *t
+	(*s.Tasks)[i] = *t
 
-	files.WriteTasksToJsonFile(s.filename, *s.tasks)
+	files.WriteTasksToJsonFile(s.Filename, *s.Tasks)
 
 	return i, nil
 }
 
 func (s Repository) FindById(id int) (*Task, int, error) {
-	for i, todo := range *s.tasks {
+	for i, todo := range *s.Tasks {
 		if todo.Id == id {
 			return &todo, i, nil
 		}
@@ -86,7 +86,7 @@ func (s Repository) FindById(id int) (*Task, int, error) {
 }
 
 func (s Repository) FindAll() []Task {
-	return *s.tasks
+	return *s.Tasks
 }
 
 func (s Repository) Delete(taskId int) error {
@@ -96,7 +96,7 @@ func (s Repository) Delete(taskId int) error {
 		return err
 	}
 
-	tasks := *s.tasks
+	tasks := *s.Tasks
 	lastIndex := len(tasks) - 1
 
 	if len(tasks) > 0 && i == lastIndex {
@@ -105,14 +105,14 @@ func (s Repository) Delete(taskId int) error {
 		tasks = append(tasks[:i], tasks[i+1:]...)
 	}
 
-	*s.tasks = tasks
-	files.WriteTasksToJsonFile(s.filename, *s.tasks)
+	*s.Tasks = tasks
+	files.WriteTasksToJsonFile(s.Filename, *s.Tasks)
 
 	return nil
 }
 
 func (s Repository) findLatestId() int {
-	tasks := *s.tasks
+	tasks := *s.Tasks
 
 	if len(tasks) == 0 {
 		return 0

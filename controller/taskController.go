@@ -11,7 +11,16 @@ import (
 
 func GetTaskById(taskService *service.TaskService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		value := r.PathValue("id")
+		value := r.URL.Path[len("/tasks/"):]
+
+		if value == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(ErrorResponse{
+				Message: "task id is mandatory",
+			})
+			return
+		}
+
 		fmt.Println("GET params were:", value)
 
 		task, err := taskService.GetTaskById(value)
@@ -29,18 +38,26 @@ func GetTaskById(taskService *service.TaskService) func(w http.ResponseWriter, r
 
 			json.NewEncoder(w).Encode(task)
 		}
-
 	}
 }
 
 func CreateTask(taskService *service.TaskService) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		decoder := json.NewDecoder(r.Body)
+		body := r.Body
+		if body == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+
+			json.NewEncoder(w).Encode(ErrorResponse{
+				Message: "Missing task description",
+			})
+			return
+		}
 
 		var task Task
-		err := decoder.Decode(&task)
+		err := json.NewDecoder(body).Decode(&task)
 
-		taskService.CreateTask(task)
+		newTask := taskService.CreateTask(task)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
@@ -53,9 +70,8 @@ func CreateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 
-			json.NewEncoder(w).Encode(task)
+			json.NewEncoder(w).Encode(newTask)
 		}
-
 	}
 }
 
@@ -89,21 +105,10 @@ func UpdateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 		value := r.PathValue("id")
 		fmt.Println("GET params were:", value)
 
-		task, err := taskService.GetTaskById(value)
-		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: err.Error(),
-			})
-		}
-
 		decoder := json.NewDecoder(r.Body)
-		decoder.DisallowUnknownFields()
 
 		var newTask Task
-		err1 := decoder.Decode(&task)
+		err1 := decoder.Decode(&newTask)
 
 		if err1 != nil {
 			w.Header().Set("Content-Type", "application/json")

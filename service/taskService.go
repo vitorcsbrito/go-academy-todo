@@ -11,12 +11,24 @@ type TaskService struct {
 	repo InterfaceRepository
 }
 
+type TaskServiceInterface interface {
+	CreateTask(task Task)
+	UpdateTask(ix string, newValues Task) (task *Task, err error)
+	DeleteTask(i string) (id int, err error)
+	GetTaskById(id string) (t *Task, err error)
+	GetSortedTasks() []Task
+}
+
 func NewTaskService(repo InterfaceRepository) *TaskService {
 	return &TaskService{repo}
 }
 
-func (service *TaskService) CreateTask(task Task) {
-	service.repo.Save(task)
+func (service *TaskService) CreateTask(task Task) *Task {
+	id := service.repo.Save(task)
+
+	createdTask, _ := service.GetTaskById(strconv.Itoa(id))
+
+	return createdTask
 }
 
 func (service *TaskService) UpdateTask(ix string, newValues Task) (task *Task, err error) {

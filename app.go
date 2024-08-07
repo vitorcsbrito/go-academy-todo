@@ -30,6 +30,8 @@ func main() {
 		}
 	})
 
+	//handler := http.HandlerFunc(GetTaskById(taskService))
+
 	http.HandleFunc("/tasks", func(writer http.ResponseWriter, request *http.Request) {
 		switch request.Method {
 		case http.MethodPost:
