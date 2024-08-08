@@ -94,3 +94,13 @@ func TestFindById(t *testing.T) {
 
 	Cleanup(filename)
 }
+
+func SetupTaskRepository() (*Repository, string) {
+	filename := GetTestDbFileName()
+	testRepo := GetInstance(filename)
+
+	testRepo.Save(Task{Id: 0, Description: "do dishes"})
+	testRepo.Save(Task{Id: 1, Description: "do laundry"})
+
+	return testRepo, filename
+}

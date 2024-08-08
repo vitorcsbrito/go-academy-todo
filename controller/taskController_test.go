@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	. "go-todo-app/model"
+	. "go-todo-app/repository"
 	. "go-todo-app/service"
 	. "go-todo-app/testutils"
 	"net/http"
@@ -92,4 +93,30 @@ func TestCreateTask(t *testing.T) {
 			t.Errorf("got %q, want %q", gotTask.Description, body.Description)
 		}
 	})
+}
+
+func SetupTaskService() (taskService *TaskService, fn string) {
+	testRepo, fn := SetupTaskRepository()
+
+	taskService = NewTaskService(testRepo)
+	return
+}
+
+func SetupTaskRepository() (*Repository, string) {
+	filename := GetTestDbFileName()
+	testRepo := GetInstance(filename)
+
+	testRepo.Save(Task{Id: 0, Description: "do dishes"})
+	testRepo.Save(Task{Id: 1, Description: "do laundry"})
+
+	return testRepo, filename
+}
+
+func SetupMockRepository() *Repository {
+	taskArr := make([]Task, 0)
+	mockRepo := &Repository{
+		Tasks:    &taskArr,
+		Filename: "tmp",
+	}
+	return mockRepo
 }
