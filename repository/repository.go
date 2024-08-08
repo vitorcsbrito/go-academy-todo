@@ -14,6 +14,7 @@ var lock = &sync.Mutex{}
 type Repository struct {
 	Tasks    *[]Task
 	Filename string
+	sync.Mutex
 }
 
 type InterfaceRepository interface {
@@ -43,13 +44,15 @@ func GetInstance(filename string) *Repository {
 	return singleInstance
 }
 
-func (s Repository) init() {
+func (s *Repository) init() {
 	tasksFromJson := files.ReadTasksFromJson(s.Filename)
 
 	GetInstance(s.Filename).Tasks = &tasksFromJson
 }
 
-func (s Repository) Save(task Task) int {
+func (s *Repository) Save(task Task) int {
+	s.Lock()
+	defer s.Unlock()
 	task.Id = s.findLatestId()
 
 	*s.Tasks = append(*s.Tasks, task)
@@ -58,7 +61,10 @@ func (s Repository) Save(task Task) int {
 	return task.Id
 }
 
-func (s Repository) Update(id int, task Task) (i int, err error) {
+func (s *Repository) Update(id int, task Task) (i int, err error) {
+	s.Lock()
+	defer s.Unlock()
+
 	t, i, err := s.FindById(id)
 
 	if err != nil {
@@ -75,7 +81,7 @@ func (s Repository) Update(id int, task Task) (i int, err error) {
 	return i, nil
 }
 
-func (s Repository) FindById(id int) (*Task, int, error) {
+func (s *Repository) FindById(id int) (*Task, int, error) {
 	for i, todo := range *s.Tasks {
 		if todo.Id == id {
 			return &todo, i, nil
@@ -85,11 +91,14 @@ func (s Repository) FindById(id int) (*Task, int, error) {
 	return &Task{Id: -1}, -1, NewErrTaskNotFound(id)
 }
 
-func (s Repository) FindAll() []Task {
+func (s *Repository) FindAll() []Task {
 	return *s.Tasks
 }
 
-func (s Repository) Delete(taskId int) error {
+func (s *Repository) Delete(taskId int) error {
+	s.Lock()
+	defer s.Unlock()
+
 	_, i, err := s.FindById(taskId)
 
 	if err != nil {
@@ -111,7 +120,7 @@ func (s Repository) Delete(taskId int) error {
 	return nil
 }
 
-func (s Repository) findLatestId() int {
+func (s *Repository) findLatestId() int {
 	tasks := *s.Tasks
 
 	if len(tasks) == 0 {
