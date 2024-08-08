@@ -15,9 +15,9 @@ Content-Type: application/json
     "done": false
 }
 
-###
+### Get Task By ID
 GET http://localhost:8080/tasks/0
 
 
-###
+### Delete Task
 DELETE http://localhost:8080/tasks/0
