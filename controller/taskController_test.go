@@ -61,7 +61,7 @@ func TestGetTaskById(t *testing.T) {
 }
 
 func TestCreateTask(t *testing.T) {
-	mockRepo := SetupMockRepository()
+	mockRepo, fn := SetupMockRepository()
 	ts := NewTaskService(mockRepo)
 
 	t.Run("bad request with missing task description", func(t *testing.T) {
@@ -93,6 +93,8 @@ func TestCreateTask(t *testing.T) {
 			t.Errorf("got %q, want %q", gotTask.Description, body.Description)
 		}
 	})
+
+	Cleanup(fn)
 }
 
 func SetupTaskService() (taskService *TaskService, fn string) {
@@ -112,11 +114,12 @@ func SetupTaskRepository() (*Repository, string) {
 	return testRepo, filename
 }
 
-func SetupMockRepository() *Repository {
+func SetupMockRepository() (*Repository, string) {
 	taskArr := make([]Task, 0)
+	filename := GetTestDbFileName()
 	mockRepo := &Repository{
 		Tasks:    &taskArr,
-		Filename: "tmp",
+		Filename: filename,
 	}
-	return mockRepo
+	return mockRepo, filename
 }
