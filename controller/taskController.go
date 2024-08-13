@@ -3,6 +3,7 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	. "go-todo-app/errors"
 	. "go-todo-app/model"
 	"go-todo-app/service"
@@ -23,7 +24,8 @@ func GetTaskById(taskService *service.TaskService) func(w http.ResponseWriter, r
 
 		fmt.Println("GET params were:", value)
 
-		task, err := taskService.GetTaskById(value)
+		uid := uuid.MustParse(value)
+		task, err := taskService.GetTaskById(uid)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
@@ -57,7 +59,7 @@ func CreateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 		var task Task
 		err := json.NewDecoder(body).Decode(&task)
 
-		newTask := taskService.CreateTask(task)
+		newTask := taskService.CreateTask(task.Description)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
@@ -81,7 +83,8 @@ func DeleteTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 		value := r.PathValue("id")
 		fmt.Println("GET params were:", value)
 
-		taskId, err := taskService.DeleteTask(value)
+		uid := uuid.MustParse(value)
+		taskId, err := taskService.DeleteTask(uid)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
@@ -119,7 +122,8 @@ func UpdateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 			})
 		}
 
-		updatedTask, _ := taskService.UpdateTask(value, newTask)
+		uid := uuid.MustParse(value)
+		updatedTask, _ := taskService.UpdateTask(uid, newTask)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

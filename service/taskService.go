@@ -1,10 +1,10 @@
 package service
 
 import (
+	"github.com/google/uuid"
 	. "go-todo-app/model"
 	. "go-todo-app/repository"
-	"sort"
-	"strconv"
+	"log"
 )
 
 type TaskService struct {
@@ -12,10 +12,10 @@ type TaskService struct {
 }
 
 type TaskServiceInterface interface {
-	CreateTask(task Task)
-	UpdateTask(ix string, newValues Task) (task *Task, err error)
-	DeleteTask(i string) (id int, err error)
-	GetTaskById(id string) (t *Task, err error)
+	CreateTask(description string) *Task
+	UpdateTask(ix uuid.UUID, newValues Task) (task *Task, err error)
+	DeleteTask(i uuid.UUID) (id uuid.UUID, err error)
+	GetTaskById(id uuid.UUID) (t *Task, err error)
 	GetSortedTasks() []Task
 }
 
@@ -23,43 +23,50 @@ func NewTaskService(repo InterfaceRepository) *TaskService {
 	return &TaskService{repo}
 }
 
-func (service *TaskService) CreateTask(task Task) *Task {
-	id := service.repo.Save(task)
+func (service *TaskService) CreateTask(description string) *Task {
 
-	createdTask, _ := service.GetTaskById(strconv.Itoa(id))
+	te := newEntity(description)
+	id := service.repo.Save(te)
+
+	createdTask, _ := service.GetTaskById(id)
 
 	return createdTask
 }
 
-func (service *TaskService) UpdateTask(ix string, newValues Task) (task *Task, err error) {
-	id, _ := strconv.Atoi(ix)
-
+func (service *TaskService) UpdateTask(id uuid.UUID, newValues Task) (task *Task, err error) {
 	_, err = service.repo.Update(id, newValues)
 
 	task, _, _ = service.repo.FindById(id)
-	return
-}
-
-func (service *TaskService) DeleteTask(i string) (id int, err error) {
-	id, _ = strconv.Atoi(i)
-
-	err = service.repo.Delete(id)
-	return
-}
-
-func (service *TaskService) GetTaskById(id string) (t *Task, err error) {
-	i, _ := strconv.Atoi(id)
-	t, _, err = service.repo.FindById(i)
 
 	return
 }
 
-func (service *TaskService) GetSortedTasks() []Task {
-	tasks := service.repo.FindAll()
+func (service *TaskService) DeleteTask(i uuid.UUID) (id uuid.UUID, err error) {
 
-	sort.SliceStable(tasks, func(i, j int) bool {
-		return (tasks)[i].Id < (tasks)[j].Id
-	})
+	task, _, err := service.repo.FindById(i)
 
-	return tasks
+	if err != nil {
+		id1, _ := uuid.NewUUID()
+		return id1, err
+	}
+
+	err = service.repo.Delete(task)
+	return
+}
+
+func (service *TaskService) GetTaskById(id uuid.UUID) (t *Task, err error) {
+	t, _, err = service.repo.FindById(id)
+
+	return
+}
+
+func (service *TaskService) GetSortedTasks() (tasks []Task) {
+	tasks, err := service.repo.FindAll()
+
+	if err != nil {
+		log.Println(err.Error())
+		return make([]Task, 0)
+	}
+
+	return
 }

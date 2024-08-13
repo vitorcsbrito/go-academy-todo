@@ -1,16 +1,19 @@
 package errors
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/google/uuid"
+)
 
 type TaskNotFound struct {
-	id int
+	id uuid.UUID
 }
 
 func (e TaskNotFound) Error() string {
 	return fmt.Sprintf("no task found for id %d", e.id)
 }
 
-func NewErrTaskNotFound(id int) error {
+func NewErrTaskNotFound(id uuid.UUID) error {
 	return &TaskNotFound{id: id}
 }
 

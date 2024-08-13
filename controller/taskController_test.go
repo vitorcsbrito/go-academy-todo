@@ -3,6 +3,8 @@ package controller
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
+	smt "go-todo-app/entities"
 	. "go-todo-app/model"
 	. "go-todo-app/repository"
 	. "go-todo-app/service"
@@ -106,20 +108,24 @@ func SetupTaskService() (taskService *TaskService, fn string) {
 
 func SetupTaskRepository() (*Repository, string) {
 	filename := GetTestDbFileName()
-	testRepo := GetInstance(filename)
+	testRepo := GetInstance()
 
-	testRepo.Save(Task{Id: 0, Description: "do dishes"})
-	testRepo.Save(Task{Id: 1, Description: "do laundry"})
+	id1, _ := uuid.NewUUID()
+	id2, _ := uuid.NewUUID()
+
+	testRepo.Save(smt.TaskEntity{Id: id1, Description: "do dishes"})
+	testRepo.Save(smt.TaskEntity{Id: id2, Description: "do laundry"})
 
 	return testRepo, filename
 }
 
 func SetupMockRepository() (*Repository, string) {
-	taskArr := make([]Task, 0)
+	//taskArr := make([]Task, 0)
 	filename := GetTestDbFileName()
 	mockRepo := &Repository{
-		Tasks:    &taskArr,
-		Filename: filename,
+		//Tasks:    &taskArr,
+		//
+		//Filename: filename,
 	}
 	return mockRepo, filename
 }
