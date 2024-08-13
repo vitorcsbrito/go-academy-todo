@@ -14,6 +14,8 @@ services:
     build: .
     ports:
       - "8080:8080"
+    depends_on:
+      - li
     volumes:
       - .docker.env:/app/.env
     environment:
@@ -21,9 +23,13 @@ services:
 
   li:
     image: brito/liquibase:latest
+    depends_on:
+      - db
     build:
       dockerfile: liqui.Dockerfile
       context: .
     volumes:
       - ./db:/app
-    command: "--defaults-file=/app/liquibase.properties changelog-sync"
+#    command: "--defaults-file=/app/liquibase.properties validate"
+    command: "--defaults-file=/app/liquibase.properties update"
+#    command: "--defaults-file=/app/liquibase.properties changelog-sync"
