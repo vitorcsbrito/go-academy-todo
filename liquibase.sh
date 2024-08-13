@@ -27,4 +27,12 @@ URL=jdbc:mysql://$DB_HOST:$DB_PORT/$DB_NAME
 #  --password=$DB_PASSWORD \
 #  --log-level info
 
-liquibase changelog-sync  --project-dir="$PROJ_DIR"
+#liquibase changelog-sync --changelog-file=changelog-master.xml \
+#  --url="$URL" \
+#  --username=$DB_USER \
+#  --password=$DB_PASSWORD
+
+#docker run --rm -v $PROJ_DIR:/liquibase/changelog liquibase/liquibase generate-changelog --changelog-file=changelog/com/example/changelogs/root.changelog.xml
+
+docker run --rm -v "$PROJ_DIR":/liquibase/changelog liquibase/liquibase \
+  --defaults-file=/liquibase/changelog/liquibase.properties update

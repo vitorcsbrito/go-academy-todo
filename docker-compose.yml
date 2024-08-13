@@ -16,4 +16,14 @@ services:
       - "8080:8080"
     volumes:
       - .docker.env:/app/.env
+    environment:
+      - TZ=Europe/Lisbon
 
+  li:
+    image: brito/liquibase:latest
+    build:
+      dockerfile: liqui.Dockerfile
+      context: .
+    volumes:
+      - ./db:/app
+    command: "--defaults-file=/app/liquibase.properties changelog-sync"
