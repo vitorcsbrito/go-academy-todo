@@ -22,3 +22,5 @@
 go.work
 
 repository/test_*.json
+
+db_data

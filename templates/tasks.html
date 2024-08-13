@@ -77,7 +77,7 @@
         <table class="table table-bordered table-striped align-middle">
             <thead>
             <tr class="table-dark">
-                <th scope="col">#</th>
+                <th scope="col">Created At</th>
                 <th scope="col">Description</th>
                 <th scope="col">Status</th>
                 <th scope="col"></th>
@@ -86,7 +86,7 @@
             <tbody class="table-group-divider">
             {{ range . }}
             <tr>
-                <th scope="row" class="align-content-center justify-content-evenly">{{ .Id }}</th>
+                <th scope="row" class="align-content-center justify-content-evenly">{{ .CreatedAt }}</th>
                 <td class="align-content-center">{{ .Description }}</td>
                 <td class="align-content-center">{{ .Done }}</td>
                 <td class="d-flex justify-content-end">

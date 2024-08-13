@@ -13,7 +13,7 @@ func main() {
 	taskRepository := repository.GetInstance()
 	taskService := service.NewTaskService(taskRepository)
 
-	tmpl := template.Must(template.ParseFiles("templates/tasks.tmpl"))
+	tmpl := template.Must(template.ParseFiles("templates/tasks.html"))
 
 	http.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
 		tmpl.Execute(w, taskService.GetSortedTasks())
