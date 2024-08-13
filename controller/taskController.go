@@ -56,7 +56,7 @@ func CreateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 			return
 		}
 
-		var task Task
+		var task CreateTaskDTO
 		err := json.NewDecoder(body).Decode(&task)
 
 		newTask := taskService.CreateTask(task.Description)

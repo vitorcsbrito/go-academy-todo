@@ -8,14 +8,14 @@ import (
 
 func Test_Remove_LastElement(t *testing.T) {
 	testRepo, filename := SetupTaskRepository()
-	err := testRepo.Delete(1)
+	err := testRepo.DeleteTask(1)
 
 	if err != nil {
 		t.Helper()
 		t.Errorf("didnt expect an err, but got one")
 	}
 
-	_, _, err1 := testRepo.FindById(1)
+	_, _, err1 := testRepo.FindTaskById(1)
 
 	if err1 == nil {
 		t.Errorf("Expected task to not be found")
@@ -28,14 +28,14 @@ func Test_Remove_LastElement(t *testing.T) {
 func Test_Remove_FirstElement(t *testing.T) {
 	testRepo, filename := SetupTaskRepository()
 
-	err := testRepo.Delete(0)
+	err := testRepo.DeleteTask(0)
 
 	if err != nil {
 		t.Helper()
 		t.Errorf("didnt expect an err, but got one")
 	}
 
-	_, _, err1 := testRepo.FindById(0)
+	_, _, err1 := testRepo.FindTaskById(0)
 
 	if err1 == nil {
 		t.Errorf("Expected task to not be found")
@@ -48,13 +48,13 @@ func Test_Remove_FirstElement(t *testing.T) {
 func Test_SaveTask(t *testing.T) {
 	testRepo, filename := SetupTaskRepository()
 
-	allTasks := testRepo.FindAll()
+	allTasks := testRepo.FindAllTasks()
 
 	prevLen := len(allTasks)
 
-	index := testRepo.Save(Task{Description: "do dishes"})
+	index := testRepo.SaveTask(Task{Description: "do dishes"})
 
-	allTasks = testRepo.FindAll()
+	allTasks = testRepo.FindAllTasks()
 	postLen := len(allTasks)
 
 	if postLen <= prevLen {
@@ -62,7 +62,7 @@ func Test_SaveTask(t *testing.T) {
 		t.Errorf("task didnt save")
 	}
 
-	task, _, err1 := testRepo.FindById(index)
+	task, _, err1 := testRepo.FindTaskById(index)
 
 	if (*task).Description != "do dishes" {
 		t.Helper()
@@ -82,14 +82,14 @@ func TestFindById(t *testing.T) {
 
 	taskId := testRepo.findLatestId() - 1
 
-	gotTask, gotIndex, err := testRepo.FindById(taskId)
+	gotTask, gotIndex, err := testRepo.FindTaskById(taskId)
 	if err != nil {
-		t.Errorf("FindById() error = %v, wantErr %v", err, "tt.wantErr")
+		t.Errorf("FindTaskById() error = %v, wantErr %v", err, "tt.wantErr")
 		return
 	}
 
 	if taskId != gotTask.Id {
-		t.Errorf("FindById() gotIndex = %v, wantIndex %v", gotIndex, taskId)
+		t.Errorf("FindTaskById() gotIndex = %v, wantIndex %v", gotIndex, taskId)
 	}
 
 	Cleanup(filename)
@@ -99,8 +99,8 @@ func SetupTaskRepository() (*Repository, string) {
 	filename := GetTestDbFileName()
 	testRepo := GetInstance()
 
-	testRepo.Save(Task{Id: 0, Description: "do dishes"})
-	testRepo.Save(Task{Id: 1, Description: "do laundry"})
+	testRepo.SaveTask(Task{Id: 0, Description: "do dishes"})
+	testRepo.SaveTask(Task{Id: 1, Description: "do laundry"})
 
 	return testRepo, filename
 }

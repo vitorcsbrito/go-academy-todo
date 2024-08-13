@@ -80,3 +80,4 @@ fabric.properties
 ### dotenv template
 .env
 
+db_data

@@ -113,8 +113,8 @@ func SetupTaskRepository() (*Repository, string) {
 	id1, _ := uuid.NewUUID()
 	id2, _ := uuid.NewUUID()
 
-	testRepo.Save(smt.TaskEntity{Id: id1, Description: "do dishes"})
-	testRepo.Save(smt.TaskEntity{Id: id2, Description: "do laundry"})
+	testRepo.SaveTask(smt.TaskEntity{Id: id1, Description: "do dishes"})
+	testRepo.SaveTask(smt.TaskEntity{Id: id2, Description: "do laundry"})
 
 	return testRepo, filename
 }

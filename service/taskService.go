@@ -8,7 +8,7 @@ import (
 )
 
 type TaskService struct {
-	repo InterfaceRepository
+	taskRepository TaskRepository
 }
 
 type TaskServiceInterface interface {
@@ -19,14 +19,14 @@ type TaskServiceInterface interface {
 	GetSortedTasks() []Task
 }
 
-func NewTaskService(repo InterfaceRepository) *TaskService {
+func NewTaskService(repo TaskRepository) *TaskService {
 	return &TaskService{repo}
 }
 
 func (service *TaskService) CreateTask(description string) *Task {
 
 	te := newEntity(description)
-	id := service.repo.Save(te)
+	id := service.taskRepository.SaveTask(te)
 
 	createdTask, _ := service.GetTaskById(id)
 
@@ -34,34 +34,34 @@ func (service *TaskService) CreateTask(description string) *Task {
 }
 
 func (service *TaskService) UpdateTask(id uuid.UUID, newValues Task) (task *Task, err error) {
-	_, err = service.repo.Update(id, newValues)
+	_, err = service.taskRepository.UpdateTask(id, newValues)
 
-	task, _, _ = service.repo.FindById(id)
+	task, _, _ = service.taskRepository.FindTaskById(id)
 
 	return
 }
 
 func (service *TaskService) DeleteTask(i uuid.UUID) (id uuid.UUID, err error) {
 
-	task, _, err := service.repo.FindById(i)
+	task, _, err := service.taskRepository.FindTaskById(i)
 
 	if err != nil {
 		id1, _ := uuid.NewUUID()
 		return id1, err
 	}
 
-	err = service.repo.Delete(task)
+	err = service.taskRepository.DeleteTask(task)
 	return
 }
 
 func (service *TaskService) GetTaskById(id uuid.UUID) (t *Task, err error) {
-	t, _, err = service.repo.FindById(id)
+	t, _, err = service.taskRepository.FindTaskById(id)
 
 	return
 }
 
 func (service *TaskService) GetSortedTasks() (tasks []Task) {
-	tasks, err := service.repo.FindAll()
+	tasks, err := service.taskRepository.FindAllTasks()
 
 	if err != nil {
 		log.Println(err.Error())

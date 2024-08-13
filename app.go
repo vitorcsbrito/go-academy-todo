@@ -12,6 +12,7 @@ import (
 func main() {
 	taskRepository := repository.GetInstance()
 	taskService := service.NewTaskService(taskRepository)
+	userService := service.NewUserService(taskRepository)
 
 	tmpl := template.Must(template.ParseFiles("templates/tasks.html"))
 
@@ -23,6 +24,8 @@ func main() {
 	http.HandleFunc("POST /tasks", CreateTask(taskService))
 	http.HandleFunc("PUT /tasks/{id}", UpdateTask(taskService))
 	http.HandleFunc("DELETE /tasks/{id}", DeleteTask(taskService))
+
+	http.HandleFunc("POST /users", CreateUser(userService))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
