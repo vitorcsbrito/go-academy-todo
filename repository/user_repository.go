@@ -3,11 +3,11 @@ package repository
 import (
 	"fmt"
 	"github.com/google/uuid"
-	. "model"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
 )
 
 type UserRepository interface {
-	SaveUser(User) uuid.UUID
+	SaveUser(user User) uuid.UUID
 	//UpdateTask(id uuid.UUID, task Task) (uuid.UUID, error)
 	//FindTaskById(id uuid.UUID) (*Task, uuid.UUID, error)
 	//DeleteTask(taskId *Task) error

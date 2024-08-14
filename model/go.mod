@@ -1,4 +1,4 @@
-module model
+module github.com/vitorcsbrito/go-academy-todo/model
 
 go 1.22
 

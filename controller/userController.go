@@ -2,10 +2,10 @@ package controller
 
 import (
 	"encoding/json"
-	. "model"
+	. "github.com/vitorcsbrito/go-academy-todo/errors"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
+	"github.com/vitorcsbrito/go-academy-todo/service"
 	"net/http"
-	"service"
-	. "todoerrors"
 )
 
 type UserController struct {

@@ -1,4 +1,4 @@
-module service
+module github.com/vitorcsbrito/go-academy-todo/service
 
 go 1.22
 

@@ -4,17 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	. "model"
+	. "github.com/vitorcsbrito/go-academy-todo/errors"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
+	. "github.com/vitorcsbrito/go-academy-todo/service"
 	"net/http"
-	"service"
-	"todoerrors"
 )
 
 type TaskController struct {
-	taskService *service.TaskService
+	taskService *TaskService
 }
 
-func NewTaskController(taskService *service.TaskService) *TaskController {
+func NewTaskController(taskService *TaskService) *TaskController {
 	return &TaskController{taskService}
 }
 
@@ -24,7 +24,7 @@ func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http
 
 		if value == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(todoerrors.NewErrTaskNotFound(value))
+			json.NewEncoder(w).Encode(NewErrTaskNotFound(value))
 			return
 		}
 
@@ -37,7 +37,7 @@ func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 
-			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(value))
+			json.NewEncoder(w).Encode(NewErrResponse(value))
 		} else {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -54,7 +54,7 @@ func CreateTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 
-			json.NewEncoder(w).Encode(todoerrors.NewErrResponse("Missing task description"))
+			json.NewEncoder(w).Encode(NewErrResponse("Missing task description"))
 			return
 		}
 
@@ -67,7 +67,7 @@ func CreateTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 
-			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(err.Error()))
+			json.NewEncoder(w).Encode(NewErrResponse(err.Error()))
 		} else {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -90,7 +90,7 @@ func DeleteTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 
-			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(value))
+			json.NewEncoder(w).Encode(NewErrResponse(value))
 		} else {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -115,7 +115,7 @@ func UpdateTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 
-			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(err1.Error()))
+			json.NewEncoder(w).Encode(NewErrResponse(err1.Error()))
 		}
 
 		uid := uuid.MustParse(value)

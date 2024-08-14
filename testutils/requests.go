@@ -4,11 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	. "model"
 	"net/http"
 )
 
-func NewCreateTaskRequest(body Task) *http.Request {
+func NewCreateTaskRequest(body model.Task) *http.Request {
 	var buf bytes.Buffer
 	_ = json.NewEncoder(&buf).Encode(body)
 

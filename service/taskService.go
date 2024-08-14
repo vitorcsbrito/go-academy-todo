@@ -2,9 +2,9 @@ package service
 
 import (
 	"github.com/google/uuid"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
+	. "github.com/vitorcsbrito/go-academy-todo/repository"
 	"log"
-	. "model"
-	. "repository"
 )
 
 type TaskService struct {

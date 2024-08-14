@@ -1,4 +1,4 @@
-package todoerrors
+package errors
 
 import (
 	"fmt"

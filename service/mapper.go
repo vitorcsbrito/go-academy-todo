@@ -1,9 +1,9 @@
 package service
 
-import . "model"
+import model "github.com/vitorcsbrito/go-academy-todo/model"
 
-func newEntity(description string) Task {
-	return Task{Description: description, Done: false}
+func newEntity(description string) model.Task {
+	return model.Task{Description: description, Done: false}
 }
 
 //

@@ -2,8 +2,8 @@ package service
 
 import (
 	"github.com/google/uuid"
-	. "model"
-	. "repository"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
+	. "github.com/vitorcsbrito/go-academy-todo/repository"
 )
 
 type UserService struct {

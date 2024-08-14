@@ -1,12 +1,12 @@
 package main
 
 import (
-	. "controller"
+	. "github.com/vitorcsbrito/go-academy-todo/controller"
+	. "github.com/vitorcsbrito/go-academy-todo/repository"
+	"github.com/vitorcsbrito/go-academy-todo/service"
 	"html/template"
 	"log"
 	"net/http"
-	. "repository"
-	"service"
 )
 
 func main() {

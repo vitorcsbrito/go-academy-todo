@@ -1,4 +1,4 @@
-module repository
+module github.com/vitorcsbrito/go-academy-todo/repository
 
 go 1.22
 

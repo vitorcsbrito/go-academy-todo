@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/google/uuid"
-	. "model"
-	. "todoerrors"
+	"github.com/vitorcsbrito/go-academy-todo/errors"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
 )
 
 type TaskRepository interface {
@@ -57,7 +57,7 @@ func (s *Repository) FindTaskById(id uuid.UUID) (*Task, uuid.UUID, error) {
 		return &foundTask, newUUID, nil
 	}
 
-	return nil, newUUID, NewErrTaskNotFound(id.String())
+	return nil, newUUID, errors.NewErrTaskNotFound(id.String())
 }
 
 func (s *Repository) FindAllTasks() ([]Task, error) {
