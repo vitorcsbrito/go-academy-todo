@@ -3,8 +3,8 @@ go 1.22.5
 
 use (
 	.
-	./repository
 	./model
+	./controller
 	./service
 	./repository
 	./errors
