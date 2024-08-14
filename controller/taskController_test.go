@@ -2,22 +2,23 @@ package controller
 
 import (
 	"encoding/json"
+	smt "entities"
 	"fmt"
 	"github.com/google/uuid"
-	smt "go-todo-app/entities"
-	. "go-todo-app/model"
-	. "go-todo-app/repository"
-	. "go-todo-app/service"
-	. "go-todo-app/testutils"
+	. "model"
 	"net/http"
 	"net/http/httptest"
+	"repository"
+	. "service"
 	"testing"
+	. "testutils"
 )
 
 func TestGetTaskById(t *testing.T) {
 	ts, fn := SetupTaskService()
 
 	t.Run("get task by id 1", func(t *testing.T) {
+
 		request := NewGetTaskRequest(1)
 		response := httptest.NewRecorder()
 

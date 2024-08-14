@@ -2,8 +2,8 @@ package service
 
 import (
 	"github.com/google/uuid"
-	. "go-todo-app/model"
-	. "go-todo-app/repository"
+	. "model"
+	. "repository"
 )
 
 type UserService struct {
@@ -11,7 +11,7 @@ type UserService struct {
 }
 
 type UserServiceInterface interface {
-	CreateUser(username string, password string) uuid.UUID
+	CreateUser(user CreateUserDTO) uuid.UUID
 	//UpdateTask(ix uuid.UUID, newValues Task) (task *Task, err error)
 	//DeleteTask(i uuid.UUID) (id uuid.UUID, err error)
 	//GetTaskById(id uuid.UUID) (t *Task, err error)

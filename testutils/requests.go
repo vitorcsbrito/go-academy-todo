@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	. "go-todo-app/model"
+	. "model"
 	"net/http"
 )
 

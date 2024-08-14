@@ -4,36 +4,40 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	. "go-todo-app/errors"
-	. "go-todo-app/model"
-	"go-todo-app/service"
+	. "model"
 	"net/http"
+	"service"
+	"todoerrors"
 )
 
-func GetTaskById(taskService *service.TaskService) func(w http.ResponseWriter, r *http.Request) {
+type TaskController struct {
+	taskService *service.TaskService
+}
+
+func NewTaskController(taskService *service.TaskService) *TaskController {
+	return &TaskController{taskService}
+}
+
+func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		value := r.URL.Path[len("/tasks/"):]
 
 		if value == "" {
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: "task id is mandatory",
-			})
+			json.NewEncoder(w).Encode(todoerrors.NewErrTaskNotFound(value))
 			return
 		}
 
 		fmt.Println("GET params were:", value)
 
 		uid := uuid.MustParse(value)
-		task, err := taskService.GetTaskById(uid)
+		task, err := controller.taskService.GetTaskById(uid)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: err.Error(),
-			})
+			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(value))
 		} else {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -43,31 +47,27 @@ func GetTaskById(taskService *service.TaskService) func(w http.ResponseWriter, r
 	}
 }
 
-func CreateTask(taskService *service.TaskService) func(w http.ResponseWriter, r *http.Request) {
+func CreateTask(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body := r.Body
 		if body == nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: "Missing task description",
-			})
+			json.NewEncoder(w).Encode(todoerrors.NewErrResponse("Missing task description"))
 			return
 		}
 
 		var task CreateTaskDTO
 		err := json.NewDecoder(body).Decode(&task)
 
-		newTask := taskService.CreateTask(task.Description)
+		newTask := controller.taskService.CreateTask(task.Description)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: err.Error(),
-			})
+			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(err.Error()))
 		} else {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -77,22 +77,20 @@ func CreateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 	}
 }
 
-func DeleteTask(taskService *service.TaskService) func(w http.ResponseWriter, r *http.Request) {
+func DeleteTask(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		value := r.PathValue("id")
 		fmt.Println("GET params were:", value)
 
 		uid := uuid.MustParse(value)
-		taskId, err := taskService.DeleteTask(uid)
+		taskId, err := controller.taskService.DeleteTask(uid)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusNotFound)
 
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: err.Error(),
-			})
+			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(value))
 		} else {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
@@ -103,7 +101,7 @@ func DeleteTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 	}
 }
 
-func UpdateTask(taskService *service.TaskService) func(w http.ResponseWriter, r *http.Request) {
+func UpdateTask(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		value := r.PathValue("id")
 		fmt.Println("GET params were:", value)
@@ -117,13 +115,11 @@ func UpdateTask(taskService *service.TaskService) func(w http.ResponseWriter, r 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: err1.Error(),
-			})
+			json.NewEncoder(w).Encode(todoerrors.NewErrResponse(err1.Error()))
 		}
 
 		uid := uuid.MustParse(value)
-		updatedTask, _ := taskService.UpdateTask(uid, newTask)
+		updatedTask, _ := controller.taskService.UpdateTask(uid, newTask)
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

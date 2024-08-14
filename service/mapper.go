@@ -1,7 +1,6 @@
 package service
 
-//import smt "go-todo-app/entities"
-import . "go-todo-app/model"
+import . "model"
 
 func newEntity(description string) Task {
 	return Task{Description: description, Done: false}

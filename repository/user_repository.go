@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/google/uuid"
-	. "go-todo-app/model"
+	. "model"
 )
 
 type UserRepository interface {

@@ -1,18 +1,21 @@
 package main
 
 import (
-	. "go-todo-app/controller"
-	"go-todo-app/repository"
-	"go-todo-app/service"
+	. "controller"
 	"html/template"
 	"log"
 	"net/http"
+	. "repository"
+	"service"
 )
 
 func main() {
-	taskRepository := repository.GetInstance()
-	taskService := service.NewTaskService(taskRepository)
-	userService := service.NewUserService(taskRepository)
+	database := GetInstance()
+	taskService := service.NewTaskService(database)
+	taskController := NewTaskController(taskService)
+
+	userService := service.NewUserService(database)
+	userController := NewUserController(userService)
 
 	tmpl := template.Must(template.ParseFiles("templates/tasks.html"))
 
@@ -20,12 +23,12 @@ func main() {
 		tmpl.Execute(w, taskService.GetSortedTasks())
 	})
 
-	http.HandleFunc("GET /tasks/{id}", GetTaskById(taskService))
-	http.HandleFunc("POST /tasks", CreateTask(taskService))
-	http.HandleFunc("PUT /tasks/{id}", UpdateTask(taskService))
-	http.HandleFunc("DELETE /tasks/{id}", DeleteTask(taskService))
+	http.HandleFunc("GET /tasks/{id}", GetTaskById(taskController))
+	http.HandleFunc("POST /tasks", CreateTask(taskController))
+	http.HandleFunc("PUT /tasks/{id}", UpdateTask(taskController))
+	http.HandleFunc("DELETE /tasks/{id}", DeleteTask(taskController))
 
-	http.HandleFunc("POST /users", CreateUser(userService))
+	http.HandleFunc("POST /users", CreateUser(userController))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }

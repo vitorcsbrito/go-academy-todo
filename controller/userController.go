@@ -2,13 +2,23 @@ package controller
 
 import (
 	"encoding/json"
-	. "go-todo-app/errors"
-	. "go-todo-app/model"
-	"go-todo-app/service"
+	. "model"
 	"net/http"
+	"service"
+	. "todoerrors"
 )
 
-func CreateUser(userService *service.UserService) func(w http.ResponseWriter, r *http.Request) {
+type UserController struct {
+	userService *service.UserService
+}
+
+func NewUserController(userService *service.UserService) *UserController {
+	return &UserController{
+		userService,
+	}
+}
+
+func CreateUser(userController *UserController) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		body := r.Body
 		if body == nil {
@@ -24,7 +34,7 @@ func CreateUser(userService *service.UserService) func(w http.ResponseWriter, r 
 		var user CreateUserDTO
 		err := json.NewDecoder(body).Decode(&user)
 
-		newUser := userService.CreateUser(user)
+		newUser := userController.userService.CreateUser(user)
 
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")

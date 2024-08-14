@@ -1,8 +1,7 @@
 package repository
 
 import (
-	. "go-todo-app/model"
-	. "go-todo-app/testutils"
+	. "model"
 	"testing"
 )
 
