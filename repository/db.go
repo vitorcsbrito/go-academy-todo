@@ -25,7 +25,6 @@ func GetInstance() *Repository {
 		if singleInstance == nil {
 			fmt.Println("Creating single instance now.")
 			singleInstance = &Repository{}
-			singleInstance.init()
 		}
 	}
 	fmt.Println("Repository instance already created.")
@@ -33,7 +32,17 @@ func GetInstance() *Repository {
 	return singleInstance
 }
 
-func (s *Repository) init() {
+func (s *Repository) Init(dialector gorm.Dialector) {
+	db, err := gorm.Open(dialector, &gorm.Config{})
+
+	if err != nil {
+		panic(err)
+	}
+
+	s.DB = db
+}
+
+func GetMySQLConnection() gorm.Dialector {
 
 	err := godotenv.Load(".env")
 
@@ -47,11 +56,5 @@ func (s *Repository) init() {
 	dbname := os.Getenv("DB_NAME")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", username, password, hostname, dbname)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-
-	if err != nil {
-		panic(err)
-	}
-
-	s.DB = db
+	return mysql.Open(dsn)
 }

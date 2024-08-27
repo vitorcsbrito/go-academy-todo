@@ -1,4 +1,4 @@
-package model
+package task
 
 import (
 	. "github.com/google/uuid"
@@ -10,8 +10,4 @@ type Task struct {
 	Description string     `json:"description" gorm:"<-"`
 	Done        bool       `json:"done" gorm:"<-"`
 	CreatedAt   *time.Time `json:"created_at" gorm:"autoCreateTime:true"`
-}
-
-type CreateTaskDTO struct {
-	Description string `json:"description" binding:"required"`
 }

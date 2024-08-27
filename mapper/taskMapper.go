@@ -1,8 +1,10 @@
-package service
+package mapper
 
-import model "github.com/vitorcsbrito/go-academy-todo/model"
+import (
+	model "github.com/vitorcsbrito/go-academy-todo/model/task"
+)
 
-func newEntity(description string) model.Task {
+func NewEntity(description string) model.Task {
 	return model.Task{Description: description, Done: false}
 }
 

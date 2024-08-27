@@ -2,9 +2,12 @@ package controller
 
 import (
 	"encoding/json"
-	. "github.com/vitorcsbrito/go-academy-todo/errors"
-	. "github.com/vitorcsbrito/go-academy-todo/model"
+	"errors"
+	"github.com/go-sql-driver/mysql"
+	. "github.com/vitorcsbrito/go-academy-todo/model/user"
 	"github.com/vitorcsbrito/go-academy-todo/service"
+	. "github.com/vitorcsbrito/utils/errors"
+	. "github.com/vitorcsbrito/utils/requests"
 	"net/http"
 )
 
@@ -22,32 +25,22 @@ func CreateUser(userController *UserController) func(w http.ResponseWriter, r *h
 	return func(w http.ResponseWriter, r *http.Request) {
 		body := r.Body
 		if body == nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: "Missing username & password",
-			})
+			NewBadRequestResponse(w, ErrMissingErrorDetails)
 			return
 		}
 
 		var user CreateUserDTO
 		err := json.NewDecoder(body).Decode(&user)
 
-		newUser := userController.userService.CreateUser(user)
+		newUser, createUserErr := userController.userService.CreateUser(user)
 
+		var mySqlError *mysql.MySQLError
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-
-			json.NewEncoder(w).Encode(ErrorResponse{
-				Message: err.Error(),
-			})
+			NewBadRequestResponse(w, err)
+		} else if errors.As(createUserErr, &mySqlError) {
+			NewBadRequestResponse(w, ErrEmailTaken)
 		} else {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-
-			json.NewEncoder(w).Encode(newUser)
+			NewOkResponse(w, newUser)
 		}
 	}
 }

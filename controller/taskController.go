@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/google/uuid"
-	. "github.com/vitorcsbrito/go-academy-todo/errors"
-	. "github.com/vitorcsbrito/go-academy-todo/model"
+	. "github.com/vitorcsbrito/go-academy-todo/model/task"
 	. "github.com/vitorcsbrito/go-academy-todo/service"
+	. "github.com/vitorcsbrito/utils/errors"
+	. "github.com/vitorcsbrito/utils/requests"
+	"html/template"
 	"net/http"
 )
 
@@ -18,13 +20,19 @@ func NewTaskController(taskService *TaskService) *TaskController {
 	return &TaskController{taskService}
 }
 
+func RenderInterface(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tmpl := template.Must(template.ParseFiles("templates/tasks.html"))
+		tmpl.Execute(w, controller.taskService.GetSortedTasks())
+	}
+}
+
 func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		value := r.URL.Path[len("/tasks/"):]
 
 		if value == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(NewErrTaskNotFound(value))
+			NewBadRequestResponse(w, ErrTaskIdMissingFromRequest)
 			return
 		}
 
@@ -34,14 +42,9 @@ func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http
 		task, err := controller.taskService.GetTaskById(uid)
 
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-
-			json.NewEncoder(w).Encode(NewErrResponse(value))
+			NewNotFoundResponse(w, err)
 		} else {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-
+			SetOkRequest(w)
 			json.NewEncoder(w).Encode(task)
 		}
 	}
@@ -51,28 +54,21 @@ func CreateTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 	return func(w http.ResponseWriter, r *http.Request) {
 		body := r.Body
 		if body == nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-
-			json.NewEncoder(w).Encode(NewErrResponse("Missing task description"))
+			NewNotFoundResponse(w, ErrTaskDescriptionNotFound)
 			return
 		}
 
 		var task CreateTaskDTO
 		err := json.NewDecoder(body).Decode(&task)
 
-		newTask := controller.taskService.CreateTask(task.Description)
+		newTask, createErr := controller.taskService.CreateTask(task.Description)
 
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-
-			json.NewEncoder(w).Encode(NewErrResponse(err.Error()))
+			NewNotFoundResponse(w, err)
+		} else if createErr != nil {
+			NewBadRequestResponse(w, createErr)
 		} else {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-
-			json.NewEncoder(w).Encode(newTask)
+			NewOkResponse(w, newTask)
 		}
 	}
 }
@@ -87,15 +83,9 @@ func DeleteTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 		taskId, err := controller.taskService.DeleteTask(uid)
 
 		if err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusNotFound)
-
-			json.NewEncoder(w).Encode(NewErrResponse(value))
+			NewNotFoundResponse(w, err)
 		} else {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-
-			json.NewEncoder(w).Encode(taskId)
+			NewOkResponse(w, taskId)
 		}
 
 	}
@@ -112,19 +102,12 @@ func UpdateTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 		err1 := decoder.Decode(&newTask)
 
 		if err1 != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-
-			json.NewEncoder(w).Encode(NewErrResponse(err1.Error()))
+			NewBadRequestResponse(w, err1)
 		}
 
 		uid := uuid.MustParse(value)
 		updatedTask, _ := controller.taskService.UpdateTask(uid, newTask)
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		json.NewEncoder(w).Encode(updatedTask)
-
+		NewOkResponse(w, updatedTask)
 	}
 }

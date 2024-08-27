@@ -2,35 +2,40 @@ package service
 
 import (
 	"github.com/google/uuid"
-	. "github.com/vitorcsbrito/go-academy-todo/model"
-	. "github.com/vitorcsbrito/go-academy-todo/repository"
+	. "github.com/vitorcsbrito/go-academy-todo/model/task"
+	. "github.com/vitorcsbrito/go-academy-todo/repository/task"
+	"github.com/vitorcsbrito/mapper"
 	"log"
 )
 
 type TaskService struct {
-	taskRepository TaskRepository
+	taskRepository Repository
 }
 
 type TaskServiceInterface interface {
-	CreateTask(description string) *Task
+	CreateTask(description string) (*Task, error)
 	UpdateTask(ix uuid.UUID, newValues Task) (task *Task, err error)
 	DeleteTask(i uuid.UUID) (id uuid.UUID, err error)
 	GetTaskById(id uuid.UUID) (t *Task, err error)
 	GetSortedTasks() []Task
 }
 
-func NewTaskService(repo TaskRepository) *TaskService {
+func NewTaskService(repo Repository) *TaskService {
 	return &TaskService{repo}
 }
 
-func (service *TaskService) CreateTask(description string) *Task {
+func (service *TaskService) CreateTask(description string) (*Task, error) {
 
-	te := newEntity(description)
-	id := service.taskRepository.SaveTask(te)
+	te := mapper.NewEntity(description)
+	id, err := service.taskRepository.SaveTask(te)
+
+	if err != nil {
+		return nil, err
+	}
 
 	createdTask, _ := service.GetTaskById(id)
 
-	return createdTask
+	return createdTask, nil
 }
 
 func (service *TaskService) UpdateTask(id uuid.UUID, newValues Task) (task *Task, err error) {

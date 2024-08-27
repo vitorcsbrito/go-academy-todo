@@ -2,35 +2,34 @@ package service
 
 import (
 	"github.com/google/uuid"
-	. "github.com/vitorcsbrito/go-academy-todo/model"
-	. "github.com/vitorcsbrito/go-academy-todo/repository"
+	model "github.com/vitorcsbrito/go-academy-todo/model/user"
+	"github.com/vitorcsbrito/go-academy-todo/repository/user"
+	"github.com/vitorcsbrito/mapper"
 )
 
 type UserService struct {
-	userRepository UserRepository
+	userRepository user.Repository
 }
 
 type UserServiceInterface interface {
-	CreateUser(user CreateUserDTO) uuid.UUID
+	CreateUser(user model.CreateUserDTO) (uuid.UUID, error)
 	//UpdateTask(ix uuid.UUID, newValues Task) (task *Task, err error)
 	//DeleteTask(i uuid.UUID) (id uuid.UUID, err error)
 	//GetTaskById(id uuid.UUID) (t *Task, err error)
-	//GetSortedTasks() []Task
+	//GetSortedTasks() []task.Task
 }
 
-func NewUserService(repo UserRepository) *UserService {
+func NewUserService(repo user.Repository) *UserService {
 	return &UserService{repo}
 }
 
-func (service *UserService) CreateUser(user CreateUserDTO) uuid.UUID {
+func (service *UserService) CreateUser(userDto model.CreateUserDTO) (uuid.UUID, error) {
 
-	newUser := User{
-		Username: user.Username,
-		Password: user.Password,
-	}
-	id := service.userRepository.SaveUser(newUser)
+	newUser := mapper.DtoToEntityNewUser(userDto)
 
-	return id
+	id, err := service.userRepository.Save(newUser)
+
+	return id, err
 }
 
 //
