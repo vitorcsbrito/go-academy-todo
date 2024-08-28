@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/google/uuid"
+	model2 "github.com/vitorcsbrito/go-academy-todo/model"
 	model "github.com/vitorcsbrito/go-academy-todo/model/user"
 	"github.com/vitorcsbrito/go-academy-todo/repository/user"
 	"github.com/vitorcsbrito/mapper"
@@ -13,6 +14,7 @@ type UserService struct {
 
 type UserServiceInterface interface {
 	CreateUser(user model.CreateUserDTO) (uuid.UUID, error)
+	GetUser(id uuid.UUID) (model2.User, error)
 	//UpdateTask(ix uuid.UUID, newValues Task) (task *Task, err error)
 	//DeleteTask(i uuid.UUID) (id uuid.UUID, err error)
 	//GetTaskById(id uuid.UUID) (t *Task, err error)
@@ -32,18 +34,24 @@ func (service *UserService) CreateUser(userDto model.CreateUserDTO) (uuid.UUID, 
 	return id, err
 }
 
+func (service *UserService) GetUser(id uuid.UUID) (model2.User, error) {
+	user, err := service.userRepository.Get(id)
+
+	return user, err
+}
+
 //
 //func (service *TaskService) UpdateTask(id uuid.UUID, newValues Task) (task *Task, err error) {
 //	_, err = service.userRepository.UpdateTask(id, newValues)
 //
-//	task, _, _ = service.userRepository.FindTaskById(id)
+//	task, _, _ = service.userRepository.FindById(id)
 //
 //	return
 //}
 //
 //func (service *TaskService) DeleteTask(i uuid.UUID) (id uuid.UUID, err error) {
 //
-//	task, _, err := service.userRepository.FindTaskById(i)
+//	task, _, err := service.userRepository.FindById(i)
 //
 //	if err != nil {
 //		id1, _ := uuid.NewUUID()
@@ -55,7 +63,7 @@ func (service *UserService) CreateUser(userDto model.CreateUserDTO) (uuid.UUID, 
 //}
 //
 //func (service *TaskService) GetTaskById(id uuid.UUID) (t *Task, err error) {
-//	t, _, err = service.userRepository.FindTaskById(id)
+//	t, _, err = service.userRepository.FindById(id)
 //
 //	return
 //}

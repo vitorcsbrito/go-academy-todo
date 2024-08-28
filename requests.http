@@ -3,8 +3,13 @@ POST http://localhost:8080/tasks
 Content-Type: application/json
 
 {
-    "description": "{{$isoTimestamp}}"
+    "description": "{{$isoTimestamp}}",
+    "userId": "18e43df6-6523-11ef-82f4-4eda08cebcc7"
 }
+
+### Get All Tasks
+GET http://localhost:8080/tasks
+Content-Type: application/json
 
 
 ### Update Task
@@ -21,8 +26,7 @@ GET http://localhost:8080/tasks/8c7d1730-5985-11ef-8057-0242ac140001
 
 
 ### Delete Task
-DELETE http://localhost:8080/tasks/0
-
+DELETE http://localhost:8080/tasks/fb12e2aa-5f00-11ef-bd14-4eda08cebcc7
 
 ### Create User
 POST http://localhost:8080/users

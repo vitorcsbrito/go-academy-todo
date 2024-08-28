@@ -2,12 +2,15 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
 	. "github.com/vitorcsbrito/go-academy-todo/model/task"
 	. "github.com/vitorcsbrito/go-academy-todo/service"
 	. "github.com/vitorcsbrito/utils/errors"
 	. "github.com/vitorcsbrito/utils/requests"
+	"gorm.io/gorm"
 	"html/template"
 	"net/http"
 )
@@ -27,6 +30,14 @@ func RenderInterface(controller *TaskController) func(w http.ResponseWriter, r *
 	}
 }
 
+func GetAllTasks(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		task := controller.taskService.GetSortedTasks()
+
+		NewOkResponse(w, task)
+	}
+}
+
 func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		value := r.URL.Path[len("/tasks/"):]
@@ -41,11 +52,12 @@ func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http
 		uid := uuid.MustParse(value)
 		task, err := controller.taskService.GetTaskById(uid)
 
-		if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			NewNotFoundResponse(w, err)
+		} else if err != nil {
+			NewInternalErrorResponse(w, err)
 		} else {
-			SetOkRequest(w)
-			json.NewEncoder(w).Encode(task)
+			NewOkResponse(w, task)
 		}
 	}
 }
@@ -61,7 +73,7 @@ func CreateTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 		var task CreateTaskDTO
 		err := json.NewDecoder(body).Decode(&task)
 
-		newTask, createErr := controller.taskService.CreateTask(task.Description)
+		newTask, createErr := controller.taskService.CreateTask(task)
 
 		if err != nil {
 			NewNotFoundResponse(w, err)

@@ -19,5 +19,25 @@
                 constraintName="cnt_unique_user_email"
                 validate="true"/>
     </changeSet>
+
+    <changeSet id="003-add_deleted_at_column" author="vitor.brito">
+        <addColumn
+                tableName="users">
+            <column name="deleted_at" afterColumn="created_at" type="datetime2"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="003-add_user_task_fk" author="vitor.brito">
+        <addColumn
+                tableName="tasks">
+            <column name="user_id" afterColumn="id" type="uniqueidentifier"/>
+        </addColumn>
+
+        <addForeignKeyConstraint baseTableName="tasks"
+                                 baseColumnNames="user_id"
+                                 constraintName="fk_user_task"
+                                 referencedTableName="users"
+                                 referencedColumnNames="id"/>
+    </changeSet>
 </databaseChangeLog>
 

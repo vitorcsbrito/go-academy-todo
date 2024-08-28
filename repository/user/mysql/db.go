@@ -2,7 +2,7 @@ package mysql
 
 import (
 	"github.com/google/uuid"
-	. "github.com/vitorcsbrito/go-academy-todo/model/user"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
 	. "github.com/vitorcsbrito/go-academy-todo/repository"
 )
 
@@ -18,15 +18,23 @@ func NewMySqlRepository(repository *Repository) *MySqlRepository {
 
 func (s *MySqlRepository) Save(user User) (uuid.UUID, error) {
 	newUUID, _ := uuid.NewUUID()
-	user.Id = newUUID
+	user.ID = newUUID
 
 	res := s.DB.Create(&user)
 
-	return user.Id, res.Error
+	return user.ID, res.Error
 }
 
 func (s *MySqlRepository) Update(id uuid.UUID, task User) (uuid.UUID, error) {
 
 	newUUID, _ := uuid.NewUUID()
 	return newUUID, nil
+}
+
+func (s *MySqlRepository) Get(id uuid.UUID) (user User, err error) {
+
+	var foundUser User
+	res := s.DB.First(&foundUser, id)
+
+	return foundUser, res.Error
 }

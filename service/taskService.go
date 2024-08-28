@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/google/uuid"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
 	. "github.com/vitorcsbrito/go-academy-todo/model/task"
 	. "github.com/vitorcsbrito/go-academy-todo/repository/task"
 	"github.com/vitorcsbrito/mapper"
@@ -10,6 +11,7 @@ import (
 
 type TaskService struct {
 	taskRepository Repository
+	userService    UserService
 }
 
 type TaskServiceInterface interface {
@@ -20,15 +22,20 @@ type TaskServiceInterface interface {
 	GetSortedTasks() []Task
 }
 
-func NewTaskService(repo Repository) *TaskService {
-	return &TaskService{repo}
+func NewTaskService(repo Repository, userService *UserService) *TaskService {
+	return &TaskService{repo, *userService}
 }
 
-func (service *TaskService) CreateTask(description string) (*Task, error) {
+func (service *TaskService) CreateTask(taskDto CreateTaskDTO) (*Task, error) {
 
-	te := mapper.NewEntity(description)
+	user, userErr := service.userService.GetUser(taskDto.UserId)
+	if userErr != nil {
+		return nil, userErr
+	}
+
+	te := mapper.NewEntity(taskDto.Description, &user)
+
 	id, err := service.taskRepository.SaveTask(te)
-
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +48,14 @@ func (service *TaskService) CreateTask(description string) (*Task, error) {
 func (service *TaskService) UpdateTask(id uuid.UUID, newValues Task) (task *Task, err error) {
 	_, err = service.taskRepository.UpdateTask(id, newValues)
 
-	task, _, _ = service.taskRepository.FindTaskById(id)
+	task, _, _ = service.taskRepository.FindById(id)
 
 	return
 }
 
 func (service *TaskService) DeleteTask(i uuid.UUID) (id uuid.UUID, err error) {
 
-	task, _, err := service.taskRepository.FindTaskById(i)
+	task, _, err := service.taskRepository.FindById(i)
 
 	if err != nil {
 		id1, _ := uuid.NewUUID()
@@ -60,7 +67,7 @@ func (service *TaskService) DeleteTask(i uuid.UUID) (id uuid.UUID, err error) {
 }
 
 func (service *TaskService) GetTaskById(id uuid.UUID) (t *Task, err error) {
-	t, _, err = service.taskRepository.FindTaskById(id)
+	t, _, err = service.taskRepository.FindById(id)
 
 	return
 }

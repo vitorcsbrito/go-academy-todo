@@ -2,9 +2,8 @@ package mysql
 
 import (
 	"github.com/google/uuid"
-	. "github.com/vitorcsbrito/go-academy-todo/model/task"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
 	. "github.com/vitorcsbrito/go-academy-todo/repository"
-	. "github.com/vitorcsbrito/utils/errors"
 )
 
 type MySqlRepository struct {
@@ -18,22 +17,16 @@ func NewMySqlRepository(repository *Repository) *MySqlRepository {
 }
 
 func (s *MySqlRepository) SaveTask(task Task) (uuid.UUID, error) {
-	t := Task{Description: task.Description, Done: task.Done}
-
 	newUUID, _ := uuid.NewUUID()
-	t.Id = newUUID
+	task.ID = newUUID
 
-	res := s.DB.Create(&t)
+	res := s.DB.Create(&task)
 
-	if res.Error != nil {
-		return newUUID, res.Error
-	}
-
-	return t.Id, nil
+	return task.ID, res.Error
 }
 
 func (s *MySqlRepository) UpdateTask(id uuid.UUID, task Task) (i uuid.UUID, err error) {
-	t, i, err := s.FindTaskById(id)
+	t, i, err := s.FindById(id)
 
 	if err != nil {
 		return i, err
@@ -51,28 +44,20 @@ func (s *MySqlRepository) UpdateTask(id uuid.UUID, task Task) (i uuid.UUID, err 
 	return i, nil
 }
 
-func (s *MySqlRepository) FindTaskById(id uuid.UUID) (*Task, uuid.UUID, error) {
+func (s *MySqlRepository) FindById(id uuid.UUID) (*Task, uuid.UUID, error) {
 	var foundTask Task
-	res := s.DB.Find(&foundTask, id)
+	res := s.DB.First(&foundTask, id)
 
-	newUUID, _ := uuid.NewUUID()
-	if res.Error == nil && res.RowsAffected > 0 {
-		return &foundTask, newUUID, nil
-	}
-
-	return nil, newUUID, ErrTaskNotFound
+	return &foundTask, id, res.Error
 }
 
 func (s *MySqlRepository) FindAllTasks() ([]Task, error) {
 
-	var foundTask []Task
+	var tasks []Task
 
-	res := s.DB.Order("created_at asc").Find(&foundTask)
-	if res.Error != nil {
-		return nil, res.Error
-	}
+	res := s.DB.Order("created_at asc").Find(&tasks)
 
-	return foundTask, nil
+	return tasks, res.Error
 }
 
 func (s *MySqlRepository) DeleteTask(task *Task) error {

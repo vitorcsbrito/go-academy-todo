@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/vitorcsbrito/go-academy-todo/model/task"
+	"github.com/vitorcsbrito/go-academy-todo/model"
 	"net/http"
 )
 
-func NewCreateTaskRequest(body task.Task) *http.Request {
+func NewCreateTaskRequest(body model.Task) *http.Request {
 	var buf bytes.Buffer
 	_ = json.NewEncoder(&buf).Encode(body)
 

@@ -15,16 +15,17 @@ import (
 func main() {
 	database := repository.GetInstance()
 
-	taskRepository := taskRepo.NewMySqlRepository(database)
-	taskService := NewTaskService(taskRepository)
-	taskController := NewTaskController(taskService)
-
 	userRepository := userRepo.NewMySqlRepository(database)
 	userService := NewUserService(userRepository)
 	userController := NewUserController(userService)
 
+	taskRepository := taskRepo.NewMySqlRepository(database)
+	taskService := NewTaskService(taskRepository, userService)
+	taskController := NewTaskController(taskService)
+
 	// Tasks
 	http.HandleFunc("GET /", RenderInterface(taskController))
+	http.HandleFunc("GET /tasks", GetAllTasks(taskController))
 	http.HandleFunc("GET /tasks/{id}", GetTaskById(taskController))
 	http.HandleFunc("POST /tasks", CreateTask(taskController))
 	http.HandleFunc("PUT /tasks/{id}", UpdateTask(taskController))

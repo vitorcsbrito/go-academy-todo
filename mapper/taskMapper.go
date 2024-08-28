@@ -1,17 +1,21 @@
 package mapper
 
 import (
-	model "github.com/vitorcsbrito/go-academy-todo/model/task"
+	. "github.com/vitorcsbrito/go-academy-todo/model"
 )
 
-func NewEntity(description string) model.Task {
-	return model.Task{Description: description, Done: false}
+func NewEntity(description string, user *User) Task {
+	return Task{
+		Description: description,
+		Done:        false,
+		UserId:      user.ID,
+	}
 }
 
 //
 //func fromEntityToModel(te smt.TaskEntity) *Task {
 //	return &Task{
-//		Id:          te.Id,
+//		ID:          te.ID,
 //		Description: te.Description,
 //		Done:        te.Done,
 //		CreatedAt:   te.CreatedAt,

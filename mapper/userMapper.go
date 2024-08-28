@@ -1,6 +1,9 @@
 package mapper
 
-import . "github.com/vitorcsbrito/go-academy-todo/model/user"
+import (
+	. "github.com/vitorcsbrito/go-academy-todo/model"
+	. "github.com/vitorcsbrito/go-academy-todo/model/user"
+)
 
 func DtoToEntityNewUser(dto CreateUserDTO) User {
 	newUser := User{
