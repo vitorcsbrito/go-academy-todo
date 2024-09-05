@@ -8,22 +8,42 @@ import (
 
 func SetOkRequest(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Request-Headers", "*")
+	w.Header().Set("Access-Control-Request-Method", "*")
 	w.WriteHeader(http.StatusOK)
 }
 
 func SetBadRequest(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Request-Headers", "*")
+	w.Header().Set("Access-Control-Request-Method", "*")
 	w.WriteHeader(http.StatusBadRequest)
 }
 
 func SetNotFoundRequest(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Request-Headers", "*")
+	w.Header().Set("Access-Control-Request-Method", "*")
 	w.WriteHeader(http.StatusNotFound)
 }
 
 func SetInternalErrorRequest(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Request-Headers", "*")
+	w.Header().Set("Access-Control-Request-Method", "*")
 	w.WriteHeader(http.StatusInternalServerError)
+}
+
+func SetUnAuthorizedErrorRequest(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Request-Headers", "*")
+	w.Header().Set("Access-Control-Request-Method", "*")
+	w.WriteHeader(http.StatusUnauthorized)
 }
 
 func NewNotFoundResponse(w http.ResponseWriter, err error) {
@@ -43,5 +63,10 @@ func NewBadRequestResponse(w http.ResponseWriter, err error) {
 
 func NewInternalErrorResponse(w http.ResponseWriter, err error) {
 	SetInternalErrorRequest(w)
+	json.NewEncoder(w).Encode(errors.NewErrResponse(err))
+}
+
+func NewUnauthorizedErrorResponse(w http.ResponseWriter, err error) {
+	SetUnAuthorizedErrorRequest(w)
 	json.NewEncoder(w).Encode(errors.NewErrResponse(err))
 }

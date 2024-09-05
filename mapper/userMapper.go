@@ -12,5 +12,7 @@ func DtoToEntityNewUser(dto CreateUserDTO) User {
 		Email:    dto.Email,
 	}
 
+	newUser.HashPassword(dto.Password)
+
 	return newUser
 }

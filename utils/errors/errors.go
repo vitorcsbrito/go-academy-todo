@@ -11,6 +11,10 @@ var (
 	ErrTaskDescriptionNotFound  = errors.New("missing task description")
 	ErrMissingErrorDetails      = errors.New("missing user details")
 	ErrEmailTaken               = errors.New("email unavailable")
+	ErrInvalidToken             = errors.New("invalid token")
+	ErrMissingAuthHeader        = errors.New("missing authorization header")
+	ErrNoUsernameFound          = errors.New("no username found")
+	ErrInvalidCredentials       = errors.New("invalid credentials")
 )
 
 func NewErrResponse(err error) error {

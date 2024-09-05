@@ -10,10 +10,10 @@ Content-Type: application/json
 ### Get All Tasks
 GET http://localhost:8080/tasks
 Content-Type: application/json
-
+#Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IkNoZWsiLCJleHAiOjE3MjU1NDYwMTN9.h3jzMEXA-gZzNpGQ271eVSqx_iOQG8_2A2zJuxH9tiI
 
 ### Update Task
-PUT http://localhost:8080/tasks/0
+PUT http://localhost:8080/tasks/af558216-6525-11ef-bf90-4eda08cebcc7
 Content-Type: application/json
 
 {
@@ -36,4 +36,23 @@ Content-Type: application/json
     "username": "username1",
     "password": "password1",
     "email": "main@vitorbrito.com"
+}
+
+### Log In
+POST http://localhost:8080/auth
+Content-Type: application/json
+
+{
+    "username": "Chek",
+    "password": "123456"
+}
+
+### Protected
+POST http://localhost:8080/protected
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IkNoZWsiLCJleHAiOjE3MjU1NDYwMTN9.h3jzMEXA-gZzNpGQ271eVSqx_iOQG8_2A2zJuxH9tiI
+
+{
+    "username": "Chek",
+    "password": "123456"
 }

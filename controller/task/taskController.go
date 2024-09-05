@@ -1,45 +1,55 @@
-package controller
+package task
 
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	. "github.com/vitorcsbrito/go-academy-todo/model"
 	. "github.com/vitorcsbrito/go-academy-todo/model/task"
 	. "github.com/vitorcsbrito/go-academy-todo/service"
+	. "github.com/vitorcsbrito/middleware"
 	. "github.com/vitorcsbrito/utils/errors"
 	. "github.com/vitorcsbrito/utils/requests"
 	"gorm.io/gorm"
-	"html/template"
-	"net/http"
+	"log"
+	. "net/http"
 )
 
-type TaskController struct {
+type Controller struct {
 	taskService *TaskService
 }
 
-func NewTaskController(taskService *TaskService) *TaskController {
-	return &TaskController{taskService}
-}
-
-func RenderInterface(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		tmpl := template.Must(template.ParseFiles("templates/tasks.html"))
-		tmpl.Execute(w, controller.taskService.GetSortedTasks())
+func NewTaskController(taskService *TaskService) *Controller {
+	t := &Controller{
+		taskService,
 	}
+	return t
 }
 
-func GetAllTasks(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (taskController *Controller) RegisterHandlers(mux *ServeMux) {
+	mux.Handle("GET /tasks", Auth(getAllTasks(taskController)))
+	mux.Handle("GET /tasks/{id}", Auth(getTaskById(taskController)))
+	mux.Handle("POST /tasks", Auth(createTask(taskController)))
+	mux.Handle("PUT /tasks/{id}", Auth(updateTask(taskController)))
+	mux.Handle("DELETE /tasks/{id}", Auth(deleteTask(taskController)))
+}
+
+func getAllTasks(controller *Controller) func(w ResponseWriter, r *Request) {
+	return func(w ResponseWriter, r *Request) {
 		task := controller.taskService.GetSortedTasks()
 
-		NewOkResponse(w, task)
+		res := struct {
+			Tasks []Task `json:"tasks"`
+		}{
+			Tasks: task,
+		}
+
+		NewOkResponse(w, res)
 	}
 }
 
-func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func getTaskById(controller *Controller) func(w ResponseWriter, r *Request) {
+	return func(w ResponseWriter, r *Request) {
 		value := r.URL.Path[len("/tasks/"):]
 
 		if value == "" {
@@ -47,13 +57,13 @@ func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http
 			return
 		}
 
-		fmt.Println("GET params were:", value)
+		log.Println("GET params were:", value)
 
 		uid := uuid.MustParse(value)
 		task, err := controller.taskService.GetTaskById(uid)
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			NewNotFoundResponse(w, err)
+			NewNotFoundResponse(w, ErrTaskNotFound)
 		} else if err != nil {
 			NewInternalErrorResponse(w, err)
 		} else {
@@ -62,8 +72,8 @@ func GetTaskById(controller *TaskController) func(w http.ResponseWriter, r *http
 	}
 }
 
-func CreateTask(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func createTask(controller *Controller) func(w ResponseWriter, r *Request) {
+	return func(w ResponseWriter, r *Request) {
 		body := r.Body
 		if body == nil {
 			NewNotFoundResponse(w, ErrTaskDescriptionNotFound)
@@ -85,11 +95,11 @@ func CreateTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 	}
 }
 
-func DeleteTask(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func deleteTask(controller *Controller) func(w ResponseWriter, r *Request) {
+	return func(w ResponseWriter, r *Request) {
 
 		value := r.PathValue("id")
-		fmt.Println("GET params were:", value)
+		log.Println("GET params were:", value)
 
 		uid := uuid.MustParse(value)
 		taskId, err := controller.taskService.DeleteTask(uid)
@@ -103,10 +113,10 @@ func DeleteTask(controller *TaskController) func(w http.ResponseWriter, r *http.
 	}
 }
 
-func UpdateTask(controller *TaskController) func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
+func updateTask(controller *Controller) func(w ResponseWriter, r *Request) {
+	return func(w ResponseWriter, r *Request) {
 		value := r.PathValue("id")
-		fmt.Println("GET params were:", value)
+		log.Println("GET params were:", value)
 
 		decoder := json.NewDecoder(r.Body)
 

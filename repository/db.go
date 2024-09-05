@@ -23,11 +23,11 @@ func GetInstance() *Repository {
 		lock.Lock()
 		defer lock.Unlock()
 		if singleInstance == nil {
-			fmt.Println("Creating single instance now.")
+			log.Println("Creating single instance now.")
 			singleInstance = &Repository{}
 		}
 	}
-	fmt.Println("Repository instance already created.")
+	log.Println("Repository instance already created.")
 
 	return singleInstance
 }

@@ -1,38 +1,35 @@
 package main
 
 import (
-	"log"
-	"net/http"
-
+	"github.com/vitorcsbrito/go-academy-todo/controller/task"
+	"github.com/vitorcsbrito/go-academy-todo/controller/user"
+	"github.com/vitorcsbrito/go-academy-todo/repository"
 	taskRepo "github.com/vitorcsbrito/go-academy-todo/repository/task/mysql"
 	userRepo "github.com/vitorcsbrito/go-academy-todo/repository/user/mysql"
-
-	. "github.com/vitorcsbrito/go-academy-todo/controller"
-	"github.com/vitorcsbrito/go-academy-todo/repository"
 	. "github.com/vitorcsbrito/go-academy-todo/service"
+	"github.com/vitorcsbrito/middleware"
+	"log"
+	"net/http"
 )
 
 func main() {
+
+	mux := http.NewServeMux()
+	wrappedMux := middleware.RequestLogger(mux)
+
 	database := repository.GetInstance()
 
 	userRepository := userRepo.NewMySqlRepository(database)
-	userService := NewUserService(userRepository)
-	userController := NewUserController(userService)
-
 	taskRepository := taskRepo.NewMySqlRepository(database)
+
+	userService := NewUserService(userRepository)
 	taskService := NewTaskService(taskRepository, userService)
-	taskController := NewTaskController(taskService)
 
-	// Tasks
-	http.HandleFunc("GET /", RenderInterface(taskController))
-	http.HandleFunc("GET /tasks", GetAllTasks(taskController))
-	http.HandleFunc("GET /tasks/{id}", GetTaskById(taskController))
-	http.HandleFunc("POST /tasks", CreateTask(taskController))
-	http.HandleFunc("PUT /tasks/{id}", UpdateTask(taskController))
-	http.HandleFunc("DELETE /tasks/{id}", DeleteTask(taskController))
+	userController := user.NewUserController(userService)
+	taskController := task.NewTaskController(taskService)
 
-	// Users
-	http.HandleFunc("POST /users", CreateUser(userController))
+	userController.RegisterHandlers(mux)
+	taskController.RegisterHandlers(mux)
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", wrappedMux))
 }

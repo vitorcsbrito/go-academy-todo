@@ -38,3 +38,11 @@ func (s *MySqlRepository) Get(id uuid.UUID) (user User, err error) {
 
 	return foundUser, res.Error
 }
+
+func (s *MySqlRepository) GetAll() (users []User, err error) {
+
+	var foundUsers []User
+	res := s.DB.Find(&foundUsers)
+
+	return foundUsers, res.Error
+}
