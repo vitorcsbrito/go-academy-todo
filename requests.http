@@ -47,10 +47,20 @@ Content-Type: application/json
     "password": "123456"
 }
 
+### Log In
+POST http://localhost:8080/auth
+Content-Type: application/json
+
+{
+    "username": "username1",
+    "password": "password1"
+}
+
 ### Protected
 POST http://localhost:8080/protected
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IkNoZWsiLCJleHAiOjE3MjU1NDYwMTN9.h3jzMEXA-gZzNpGQ271eVSqx_iOQG8_2A2zJuxH9tiI
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6Im1haW5Adml0b3Jicml0by5jb20iLCJleHAiOjE3MjU1NTE2MDcsInVzZXJuYW1lIjoidXNlcm5hbWUxIn0.3vP9yG88BWrqqnanV-DiVeaOuRN6MTv2KoauepBNSTw
+Cookie: token
 
 {
     "username": "Chek",

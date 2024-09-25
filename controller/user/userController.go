@@ -3,10 +3,10 @@ package user
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/go-sql-driver/mysql"
 	. "github.com/vitorcsbrito/go-academy-todo/model/user"
 	"github.com/vitorcsbrito/go-academy-todo/service"
+	. "github.com/vitorcsbrito/middleware"
 	. "github.com/vitorcsbrito/utils/errors"
 	. "github.com/vitorcsbrito/utils/requests"
 	"log"
@@ -21,7 +21,7 @@ func (userController *Controller) RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("POST /users", CreateUser(userController))
 	mux.HandleFunc("GET /users", GetAllUsers(userController))
 	mux.HandleFunc("POST /auth", LoginHandler(userController))
-	mux.HandleFunc("POST /protected", ProtectedHandler(userController))
+	mux.Handle("POST /protected", Auth(ProtectedHandler(userController)))
 }
 
 func NewUserController(userService *service.UserService) *Controller {
@@ -69,45 +69,50 @@ func GetAllUsers(userController *Controller) func(w http.ResponseWriter, r *http
 
 func LoginHandler(uc *Controller) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
 		var u AuthDTO
-		json.NewDecoder(r.Body).Decode(&u)
+		err := json.NewDecoder(r.Body).Decode(&u)
+		if err != nil {
+			NewBadRequestResponse(w, err)
+			return
+		}
 		log.Printf("The user request value %v", u)
 
-		if u.Username == "Chek" && u.Password == "123456" {
-			tokenString, err := uc.userService.CreateToken(u.Username)
-			if err != nil {
-				NewInternalErrorResponse(w, ErrNoUsernameFound)
-			}
+		token, _, err := uc.userService.AuthenticateUser(u)
 
-			NewOkResponse(w, tokenString)
-
+		if errors.Is(err, ErrUserNotFound) {
+			NewNotFoundResponse(w, err)
 			return
-		} else {
-			NewUnauthorizedErrorResponse(w, ErrInvalidCredentials)
+		} else if errors.Is(err, ErrInvalidCredentials) {
+			NewUnauthorizedErrorResponse(w, err)
+			return
+		} else if errors.Is(err, ErrUserNotFound) {
+			NewBadRequestResponse(w, err)
+			return
+		} else if err != nil {
+			NewInternalErrorResponse(w, ErrNoUsernameFound)
+			return
 		}
+
+		NewOkResponse(w, token)
+		return
 	}
 }
 
 func ProtectedHandler(uc *Controller) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
 		tokenString := r.Header.Get("Authorization")
 		if tokenString == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprint(w, "Missing authorization header")
+			NewUnauthorizedErrorResponse(w, ErrMissingAuthHeader)
 			return
 		}
 		tokenString = tokenString[len("Bearer "):]
 
 		err := uc.userService.VerifyToken(tokenString)
 		if err != nil {
-			w.WriteHeader(http.StatusUnauthorized)
-			fmt.Fprint(w, "Invalid token")
+			NewUnauthorizedErrorResponse(w, ErrInvalidToken)
 			return
 		}
 
-		fmt.Fprint(w, "Welcome to the the protected area")
+		NewOkResponse(w, "Welcome to the the protected area")
 	}
 }

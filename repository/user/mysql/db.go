@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	. "github.com/vitorcsbrito/go-academy-todo/model"
 	. "github.com/vitorcsbrito/go-academy-todo/repository"
+	"github.com/vitorcsbrito/utils/errors"
 )
 
 type MySqlRepository struct {
@@ -45,4 +46,15 @@ func (s *MySqlRepository) GetAll() (users []User, err error) {
 	res := s.DB.Find(&foundUsers)
 
 	return foundUsers, res.Error
+}
+
+func (s *MySqlRepository) GetByUsername(username string) (user User, err error) {
+	var foundUser User
+	res := s.DB.Where("username = ?", username).First(&foundUser)
+
+	if res.RowsAffected < 1 {
+		return User{}, errors.ErrUserNotFound
+	}
+
+	return foundUser, res.Error
 }
