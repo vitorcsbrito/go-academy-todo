@@ -33,3 +33,25 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(":8080", wrappedMux))
 }
+
+//func main() {
+//	db, err := connectToSQLite()
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//
+//	// Perform database migration
+//	err = db.AutoMigrate(&model.User{}, &model.Task{})
+//	if err != nil {
+//		log.Fatal(err)
+//	}
+//}
+//
+//func connectToSQLite() (*gorm.DB, error) {
+//	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return db, nil
+//}

@@ -2,8 +2,6 @@ package service
 
 import (
 	"crypto/rsa"
-	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
@@ -11,7 +9,9 @@ import (
 	. "github.com/vitorcsbrito/go-academy-todo/model/user"
 	"github.com/vitorcsbrito/go-academy-todo/repository/user"
 	"github.com/vitorcsbrito/mapper"
+	"github.com/vitorcsbrito/utils"
 	"github.com/vitorcsbrito/utils/errors"
+	"net/http"
 	"os"
 	"time"
 )
@@ -32,30 +32,17 @@ type UserServiceInterface interface {
 }
 
 func NewUserService(repo user.Repository) *UserService {
+	publicKey, _ := os.ReadFile("./private/pub.key")
+	keyPub, _ := jwt.ParseRSAPublicKeyFromPEM(publicKey)
 
-	privateKey, err := os.ReadFile("./private/priv.key") // just pass the file name
-	if err != nil {
-		fmt.Print(err)
-	}
+	privateKey, _ := os.ReadFile("./private/priv.key")
+	keyPriv, _ := jwt.ParseRSAPrivateKeyFromPEM(privateKey)
 
-	publicKey, err := os.ReadFile("./private/pub.key") // just pass the file name
-	if err != nil {
-		fmt.Print(err)
-	}
-
-	block, _ := pem.Decode(privateKey)
-	key, _ := x509.ParsePKCS1PrivateKey(block.Bytes)
-
-	b1, _ := pem.Decode(publicKey)
-	keyPub, _ := x509.ParsePKIXPublicKey(b1.Bytes)
-
-	u := &UserService{
+	return &UserService{
 		userRepository: repo,
-		privKey:        key,
-		pubKey:         keyPub.(*rsa.PublicKey),
+		privKey:        keyPriv,
+		pubKey:         keyPub,
 	}
-
-	return u
 }
 
 func (userService *UserService) CreateUser(userDto CreateUserDTO) (uuid.UUID, error) {
@@ -80,8 +67,7 @@ func (userService *UserService) GetAllUsers() ([]model.User, error) {
 }
 
 func (userService *UserService) CreateToken(user model.User) (string, time.Time, error) {
-
-	expirationTime := time.Now().Add(time.Minute * 100)
+	expirationTime := time.Now().Add(utils.CookieAge)
 	claims := &model.Claims{
 		Username: user.Username,
 		Email:    user.Email,
@@ -134,8 +120,21 @@ func (userService *UserService) AuthenticateUser(authDetails AuthDTO) (*Token, t
 		if err != nil {
 			return &Token{}, expTime, err
 		}
-		return NewToken(token), time.Now(), err
+		return NewToken(token, utils.CookieAge, expTime), time.Now(), err
 	}
 
 	return &Token{}, time.Now(), errors.ErrInvalidCredentials
+}
+
+func (userService *UserService) GetToken(token Token) http.Cookie {
+	return http.Cookie{
+		Name:     "todo_auth_cookie",
+		Value:    token.Token,
+		Path:     "/",
+		MaxAge:   int(token.Age.Seconds()),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteDefaultMode,
+		Expires:  token.Expires,
+	}
 }

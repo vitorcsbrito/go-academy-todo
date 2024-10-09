@@ -6,7 +6,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	. "github.com/vitorcsbrito/go-academy-todo/model/user"
 	"github.com/vitorcsbrito/go-academy-todo/service"
-	. "github.com/vitorcsbrito/middleware"
+	"github.com/vitorcsbrito/utils"
 	. "github.com/vitorcsbrito/utils/errors"
 	. "github.com/vitorcsbrito/utils/requests"
 	"log"
@@ -21,7 +21,7 @@ func (userController *Controller) RegisterHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("POST /users", CreateUser(userController))
 	mux.HandleFunc("GET /users", GetAllUsers(userController))
 	mux.HandleFunc("POST /auth", LoginHandler(userController))
-	mux.Handle("POST /protected", Auth(ProtectedHandler(userController)))
+	mux.HandleFunc("POST /protected", ProtectedHandler(userController))
 }
 
 func NewUserController(userService *service.UserService) *Controller {
@@ -93,26 +93,47 @@ func LoginHandler(uc *Controller) func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		NewOkResponse(w, token)
+		cookie := uc.userService.GetToken(*token)
+		http.SetCookie(w, &cookie)
+
+		NewOkResponse(w, "")
 		return
 	}
 }
 
 func ProtectedHandler(uc *Controller) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
-			NewUnauthorizedErrorResponse(w, ErrMissingAuthHeader)
+		value, err := Read(r, utils.CookieName)
+		if err != nil {
+			switch {
+			case errors.Is(err, http.ErrNoCookie):
+				http.Error(w, "cookie not found", http.StatusBadRequest)
+			default:
+				log.Println(err)
+				http.Error(w, "server error", http.StatusInternalServerError)
+			}
 			return
 		}
-		tokenString = tokenString[len("Bearer "):]
 
-		err := uc.userService.VerifyToken(tokenString)
-		if err != nil {
+		log.Println(value)
+
+		err1 := uc.userService.VerifyToken(value)
+		if err1 != nil {
 			NewUnauthorizedErrorResponse(w, ErrInvalidToken)
 			return
 		}
 
 		NewOkResponse(w, "Welcome to the the protected area")
 	}
+}
+
+func Read(r *http.Request, name string) (string, error) {
+	// Read the cookie as normal.
+	cookie, err := r.Cookie(name)
+	if err != nil {
+		return "", err
+	}
+
+	// Return the decoded cookie value.
+	return cookie.Value, nil
 }

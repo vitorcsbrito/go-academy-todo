@@ -8,10 +8,10 @@ import (
 
 type Task struct {
 	gorm.Model
-	ID          UUID       `json:"id" gorm:"primaryKey;type:uuid;default:uuid_generate_v4()"`
+	ID          UUID       `json:"id" gorm:"primaryKey;type:char(36);"`
 	Description string     `json:"description" gorm:"<-"`
 	Done        bool       `json:"done" gorm:"<-"`
-	UserId      UUID       `json:"user"`
+	UserId      UUID       `json:"user;type:char(36);"`
 	CreatedAt   *time.Time `json:"created_at" gorm:"autoCreateTime:true"`
 	UpdatedAt   *time.Time `json:"updated_at" gorm:"autoUpdateTime:true"`
 	DeletedAt   *time.Time `json:"deleted_at" gorm:"autoDeleteTime:true"`

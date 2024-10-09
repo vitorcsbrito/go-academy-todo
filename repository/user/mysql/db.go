@@ -5,6 +5,7 @@ import (
 	. "github.com/vitorcsbrito/go-academy-todo/model"
 	. "github.com/vitorcsbrito/go-academy-todo/repository"
 	"github.com/vitorcsbrito/utils/errors"
+	"log"
 )
 
 type MySqlRepository struct {
@@ -12,7 +13,11 @@ type MySqlRepository struct {
 }
 
 func NewMySqlRepository(repository *Repository) *MySqlRepository {
-	repository.Init(GetMySQLConnection())
+	repository.Init(GetDbConnection())
+	err1 := repository.DB.AutoMigrate(&User{})
+	if err1 != nil {
+		log.Fatal(err1)
+	}
 
 	return &MySqlRepository{repository}
 }
