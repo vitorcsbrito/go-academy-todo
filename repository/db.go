@@ -33,9 +33,8 @@ func GetInstance() *Repository {
 	return singleInstance
 }
 
-func (s *Repository) Init(dialector gorm.Dialector) {
-	db, err := gorm.Open(dialector, &gorm.Config{})
-	//db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
+func (s *Repository) Init(dl gorm.Dialector) {
+	db, err := gorm.Open(dl, &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
@@ -45,13 +44,19 @@ func (s *Repository) Init(dialector gorm.Dialector) {
 
 func GetDbConnection() gorm.Dialector {
 
+	hasEnvFile := true
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Fatal(err)
+		hasEnvFile = false
+		//log.Fatal(err)
+	}
+
+	if !hasEnvFile {
+		dsn := fmt.Sprintf("file::memory:?cache=shared")
+		return sqlite.Open(dsn)
 	}
 
 	db := os.Getenv("DB")
-
 	if db == "mysql" {
 		username := os.Getenv("DB_USER")
 		password := os.Getenv("DB_PASSWORD")
@@ -62,7 +67,7 @@ func GetDbConnection() gorm.Dialector {
 		return mysql.Open(dsn)
 	} else if db == "sqlite" {
 		dbname := os.Getenv("DB_NAME")
-		dsn := fmt.Sprintf("file:%v.db?cache=shared", dbname)
+		dsn := fmt.Sprintf("file:%v?cache=shared", dbname)
 		return sqlite.Open(dsn)
 	}
 	panic("DB environment variable not valid.")

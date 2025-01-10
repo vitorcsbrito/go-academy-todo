@@ -32,7 +32,6 @@ func (s *MySqlRepository) Save(user User) (uuid.UUID, error) {
 }
 
 func (s *MySqlRepository) Update(id uuid.UUID, task User) (uuid.UUID, error) {
-
 	newUUID, _ := uuid.NewUUID()
 	return newUUID, nil
 }
